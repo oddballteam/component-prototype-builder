@@ -381,7 +381,7 @@ async function renderStage(){
   const ok=await rLoadLive();
   if(tok!==stageTok)return;
   if(!ok){if(hasSrc){useStandIn();stageNote("The real VA components couldn’t be loaded from unpkg.com, so this is the stand-in drawing. Check the connection and press Spec view again to retry.")}else{host.textContent="The real components didn’t load here. The production code is in the tabs below.";stageNote("")}return}
-  const el=document.createElement("div");host.append(el);rMountPreview(el,String(current.production||""),{spec});
+  const el=document.createElement("div");host.append(el);rMountPreview(el,prodHtml(),{spec});
   setTimeout(()=>{if(tok!==stageTok)return;const r=el.getBoundingClientRect();$("#dims").textContent=Math.round(r.width)+" \u00d7 "+Math.round(r.height)},400);
   stageNote("Drawn with the real VA web components (v"+REF_WC_VER+"), the same as the Compose tab."+(spec?" Spec view adds a grid, outlines and sizes on top of them.":" Fonts and spacing can differ slightly from VA.gov."));
 }
@@ -466,7 +466,69 @@ function renderCode(){
     body.append(vadsCheckView(current));
   }
 }
-function renderAll(){renderMeta();renderStage();renderCode();$("#refine-go").disabled=!sample||busy}
+/* ---------- Variations: the component's own options, drawn live ----------
+   Controls come from VADS_SPEC (the real prop list and allowed values). Changing one edits a working copy of the
+   production markup and redraws the real components. "Apply to my code" writes the working copy back. */
+const VAR_BOOLS=new Set(["secondary","big","small","disabled","full-width","slim","closeable","bordered","open","open-single","required","tile","striped","stacked","sortable","scrollable","inline","back","continue","primary-alternate","loading","iconless","active","checked","indeterminate","show-shadow","disable-border","use-forms-pattern","header-sr-only","label-sr-only","month-optional","month-year-only"]);
+let PV={base:null,html:null,tpl:null,ref:null,changed:false};
+const prodHtml=()=>PV.base===current.production&&PV.html!=null?PV.html:String(current.production||"");
+function pvSerialize(){
+  let h=PV.tpl.innerHTML;
+  VAR_BOOLS.forEach(b=>{h=h.replace(new RegExp("(\\s"+b+")=\"\"","g"),"$1")});
+  return h;
+}
+function vEl(tag,attrs,...kids){const e=document.createElement(tag);Object.keys(attrs||{}).forEach(k=>{if(k==="text")e.textContent=attrs[k];else e.setAttribute(k,attrs[k])});kids.forEach(k=>k&&e.append(k));return e}
+function renderVariants(){
+  const host=$("#variants");if(!host)return;
+  if(PV.base!==current.production)PV={base:current.production,html:null,tpl:null,ref:null,changed:false};
+  host.innerHTML="";
+  const t=document.createElement("template");t.innerHTML=String(current.production||"");
+  PV.tpl=t;
+  const els=[...t.content.querySelectorAll("*")].filter(e=>VADS_SPEC[e.localName]).slice(0,8);
+  const groups=[];
+  els.forEach((el,i)=>{
+    const props=VADS_SPEC[el.localName].p,ctl=[];
+    Object.keys(props).forEach(pn=>{
+      const vals=props[pn];
+      if(Array.isArray(vals)&&vals.length<=8){
+        const id="pv-"+i+"-"+pn,sel=vEl("select",{id});
+        sel.append(vEl("option",{value:"",text:"Not set"}));
+        vals.forEach(v=>sel.append(vEl("option",{value:v,text:v})));
+        sel.value=el.getAttribute(pn)||"";
+        sel.onchange=()=>{if(sel.value)el.setAttribute(pn,sel.value);else el.removeAttribute(pn);pvChange()};
+        ctl.push(vEl("div",{class:"pv-f"},vEl("label",{for:id,text:pn}),sel));
+      }else if(VAR_BOOLS.has(pn)){
+        const id="pv-"+i+"-"+pn,cb=vEl("input",{type:"checkbox",id});
+        cb.checked=el.hasAttribute(pn);
+        cb.onchange=()=>{if(cb.checked)el.setAttribute(pn,"");else el.removeAttribute(pn);pvChange()};
+        ctl.push(vEl("div",{class:"pv-f pv-c"},cb,vEl("label",{for:id,text:pn})));
+      }
+    });
+    if(!ctl.length)return;
+    const name=el.getAttribute("text")||el.getAttribute("label")||el.getAttribute("header")||el.getAttribute("heading-text")||"";
+    groups.push(vEl("fieldset",{class:"pv-g"},vEl("legend",{},vEl("code",{text:el.localName}),name?document.createTextNode(" "+name.slice(0,40)):null),...ctl.slice(0,8)));
+  });
+  const comp=els.map(e=>REF_COMPS.find(c=>c.tag===e.localName)).find(c=>c&&c.stories.length>1);
+  const chips=comp?comp.stories.map(st=>{
+    const b=vEl("button",{type:"button",class:"tool pv-chip","aria-pressed":String(PV.ref===st.n),text:st.n});
+    b.onclick=()=>{PV.ref=PV.ref===st.n?null:st.n;PV.html=PV.ref?st.h:(PV.changed?pvSerialize():null);renderStage();renderVariants()};
+    return b}):[];
+  if(!groups.length&&!chips.length){host.hidden=true;return}
+  host.hidden=false;
+  const head=vEl("div",{class:"pv-h"},vEl("h3",{text:"Variations"}),vEl("p",{class:"rnote",style:"padding:0",text:PV.ref?"Showing the reference state “"+PV.ref+"”. Reset to go back to your code.":"Change an option to see the real component redraw. Apply writes it to your production code."}));
+  const apply=vEl("button",{type:"button",class:"btn small",text:"Apply to my code"});
+  apply.disabled=!PV.changed||!!PV.ref;
+  apply.onclick=()=>{current.production=pvSerialize();PV={base:current.production,html:null,tpl:null,ref:null,changed:false};renderCode();renderStage();renderVariants();stageNote("Applied. The production code now includes your options.")};
+  const reset=vEl("button",{type:"button",class:"tool",text:"Reset"});
+  reset.disabled=!PV.changed&&!PV.ref;
+  reset.onclick=()=>{PV={base:current.production,html:null,tpl:null,ref:null,changed:false};renderStage();renderVariants()};
+  host.append(head);
+  if(groups.length)host.append(vEl("div",{class:"pv-gs"},...groups));
+  if(chips.length)host.append(vEl("div",{class:"pv-ref",role:"group","aria-label":"Reference states for "+comp.name},vEl("span",{class:"rnote",style:"padding:0",text:comp.name+" reference states"}),...chips));
+  host.append(vEl("div",{class:"rlinks"},apply,reset));
+}
+function pvChange(){PV.changed=true;PV.ref=null;PV.html=pvSerialize();renderStage();const a=document.querySelector("#variants .btn"),r=document.querySelector("#variants .rlinks .tool");if(a)a.disabled=false;if(r)r.disabled=false;document.querySelectorAll("#variants .pv-chip").forEach(b=>b.setAttribute("aria-pressed","false"))}
+function renderAll(){renderMeta();renderStage();renderVariants();renderCode();$("#refine-go").disabled=!sample||busy}
 
 window.addEventListener("message",e=>{
   if(e.source!==frame.contentWindow||!e.data||!e.data.__vads)return;

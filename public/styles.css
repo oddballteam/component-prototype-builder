@@ -517,3 +517,18 @@ pre.cs-tx,pre.cs-md{max-height:360px;overflow:auto;margin:0 18px 14px;background
 .fi label.cs-chk{font-size:13.5px;color:var(--label)}
 
 #tmpl{width:100%;border:0;background:transparent;padding:12px 14px;font:inherit;font-size:15px;color:inherit;min-height:44px;border-radius:10px}
+
+.variants{background:var(--card);border-radius:var(--r-card);padding:14px 18px 16px;display:grid;gap:12px;min-width:0}
+.variants[hidden]{display:none}
+.pv-h h3{margin:0 0 2px;font-size:17px;font-weight:600}
+.pv-gs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.pv-g{border:0;border-top:.5px solid var(--sep);margin:0;padding:10px 0 0;min-width:0;display:grid;gap:8px}
+.pv-g legend{padding:0 8px 0 0;font-size:14px;color:var(--secondary)}
+.pv-g code{font-family:var(--mono);font-size:13px;background:var(--fill);border-radius:5px;padding:1px 6px;color:inherit}
+.pv-f{display:grid;gap:3px;min-width:0}
+.pv-f label{font-size:13px;color:var(--secondary)}
+.pv-f select{width:100%;min-height:36px;border:0;background:var(--fill);border-radius:8px;padding:6px 9px;font:inherit;font-size:14px;color:inherit}
+.pv-c{display:flex;align-items:center;gap:8px}
+.pv-c label{font-size:14px;color:inherit}
+.pv-ref{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.pv-chip[aria-pressed="true"]{background:var(--tint);color:#fff}
