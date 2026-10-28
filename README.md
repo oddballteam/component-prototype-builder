@@ -46,17 +46,3 @@ npm test
 
 Step by step: see "Component Builder: First Deploy Steps". In short: import the repo into Vercel, add `ANTHROPIC_API_KEY` (Production and Preview, Sensitive), turn on Deployment Protection, open a pull request and test the preview.
 
-## Limits to know about
-
-- **Anyone with the URL can generate and spend your key.** With no logins, the only gate is Vercel Deployment Protection (Settings, then Deployment Protection). Keep it on, set a spend limit on the key's workspace in the Anthropic Console, and do not share the URL widely.
-- **No shared data.** Because storage is per browser, the Community tab only shows what that browser saved, and two people never see each other's studies or records.
-- **Function time.** `vercel.json` asks for up to 300 seconds on `/api/sample`. Whether your Vercel plan allows that has not been checked.
-- **Figma push.** Not available; SVG download is the fallback.
-- **Copy.** Some messages still say "opened in Claude" or "signed in on claude.ai". They only show when generating is unavailable (or in the sharing hints). Search `app.js` for "in Claude" and "claude.ai" and reword them.
-- **VA component library link.** The plan to render through `va-uswds-render` and `@department-of-veterans-affairs/component-library` (tokens, templates, Public Sans) is separate and not part of this package. See the integration plan.
-
-## Secrets
-
-- The Anthropic key lives only in Vercel environment variables as `ANTHROPIC_API_KEY`, and only `api/sample.js` reads it.
-- Never put it in a file in this repo or in `public/`. `.env*` is git-ignored; `.env.example` is the template.
-- A test fails the build if a key-shaped string appears in the repo.
