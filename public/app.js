@@ -2218,17 +2218,6 @@ function ptRenderSide(){
   const side=$("#pt-side");if(!side)return;
   side.innerHTML="";
 
-  const typeGroup=fel("div",{class:"group"},
-    fel("p",{class:"ghead",id:"pt-type-h",text:"What are you building?"}),
-    fel("div",{class:"inset",role:"radiogroup","aria-labelledby":"pt-type-h"},PT_TYPES.map(([v,t,d])=>{
-      const b=fel("button",{class:"pt-radio",type:"button",role:"radio","aria-checked":String(PT.type===v)},
-        fel("span",{class:"dot","aria-hidden":"true"}),fel("span",{class:"tx"},fel("b",{text:t}),fel("span",{text:d})));
-      b.onclick=()=>{PT.type=v;ptSave();ptRender()};
-      return b;
-    })),
-    fel("p",{class:"gfoot",text:"This picks the page shell. Form flows get the minimal header. Other pages get the full VA.gov header, breadcrumbs and footer."}));
-  side.append(typeGroup);
-  side.append(ptTemplateGroup());
 
   const vp=sl([["mobile","Mobile, 320px"],["desktop","Desktop, 1024px"],["both","Both, mobile first"]],PT.viewport,v=>{PT.viewport=v;ptSave();ptRenderMain()},"pt-viewport");
   side.append(fel("div",{class:"group"},
@@ -2422,9 +2411,9 @@ function ptA11y(){
 function ptRenderSnap(){
   const box=$("#pt-snap-box");if(!box)return;
   box.innerHTML="";
-  const fp=ptFormPages(),cp=ptComposedPages();
-  if(!fp.length&&!cp.length){box.append(fel("p",{class:"rnote",style:"padding:6px 18px 16px",text:"Nothing to show yet. Build a form in the Forms tab or compose a page."}));return}
-  const opts=fp.map(p=>["f:"+p.id,"Form: "+p.title]).concat(cp.map(p=>["c:"+p.id,"Page: "+p.title]));
+  const cp=ptComposedPages();
+  if(!cp.length){box.append(fel("p",{class:"rnote",style:"padding:6px 18px 16px",text:"Nothing to show yet. Compose a page in Pages, or start from a page template."}));return}
+  const opts=cp.map(p=>["c:"+p.id,"Page: "+p.title]);
   if(!opts.some(o=>o[0]===PT.snap))PT.snap=opts[0][0];
   const sel=sl(opts,PT.snap,v=>{PT.snap=v;ptSave();ptMountSnap()},"pt-snap-sel");
   sel.setAttribute("aria-label","Page to preview");
