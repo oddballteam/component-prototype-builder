@@ -2217,6 +2217,15 @@ function ptPageCard(pg,i){
 function ptRenderSide(){
   const side=$("#pt-side");if(!side)return;
   side.innerHTML="";
+  if(ptUsesPages()){
+    const addPage=fel("button",{class:"btn",type:"button",text:"Add a page"});
+    addPage.onclick=()=>{PT.pages.push({id:ptUid("pg"),title:"New page",blocks:[]});ptSave();ptRenderSide();ptRenderMain()};
+    side.append(fel("div",{class:"group"},
+      fel("p",{class:"ghead",text:"Pages you compose"}),
+      PT.pages.length?PT.pages.map((p,i)=>ptPageCard(p,i)):fel("div",{class:"inset"},fel("div",{class:"cell"},fel("p",{class:"fhint",text:"No pages yet. Add one, then add the components it needs. Use VADS components first."}))),
+      addPage,
+      fel("p",{class:"gfoot",text:"Pick from the VADS list wherever you can. A custom component needs a written reason and goes to the engineer as an open question."})));
+  }
 
 
   const vp=sl([["mobile","Mobile, 320px"],["desktop","Desktop, 1024px"],["both","Both, mobile first"]],PT.viewport,v=>{PT.viewport=v;ptSave();ptRenderMain()},"pt-viewport");
@@ -2251,15 +2260,6 @@ function ptRenderSide(){
           fel("p",{class:"fhint",text:fp.length+" pages in the flow, "+steps+" of them question pages."})),
         fel("div",{class:"cell"},go)),
       PT.type==="subtask"&&steps>3?fel("p",{class:"gfoot",text:"A sub-task is one to three steps. This form has "+steps+". Consider the Standard form flow type."}):null));
-  }
-  if(ptUsesPages()){
-    const addPage=fel("button",{class:"btn",type:"button",text:"Add a page"});
-    addPage.onclick=()=>{PT.pages.push({id:ptUid("pg"),title:"New page",blocks:[]});ptSave();ptRenderSide();ptRenderMain()};
-    side.append(fel("div",{class:"group"},
-      fel("p",{class:"ghead",text:"Pages you compose"}),
-      PT.pages.length?PT.pages.map((p,i)=>ptPageCard(p,i)):fel("div",{class:"inset"},fel("div",{class:"cell"},fel("p",{class:"fhint",text:"No pages yet. Add one, then add the components it needs. Use VADS components first."}))),
-      addPage,
-      fel("p",{class:"gfoot",text:"Pick from the VADS list wherever you can. A custom component needs a written reason and goes to the engineer as an open question."})));
   }
 }
 
@@ -2344,6 +2344,7 @@ function ptRenderReview(main){
   const qc=ptCard("Outstanding questions");
   qc.append(fel("div",{id:"pt-qs"}));
   secs.push(["qs","Questions",qc]);
+  if(CS.role!=="engineer"&&window.CSX&&CSX.engNotes){const en=ptCard("Engineer notes");const nb=CSX.engNotes();if(nb)en.append(nb);secs.push(["eng","Engineer notes",en])}
   if(CS.role!=="engineer"){const bw=fel("div",{class:"pt-bundle"});ptRenderBundle(bw);secs.push(["bundle","Bundle files",bw])}
   const nav=fel("div",{class:"seg pt-subtabs",role:"tablist","aria-label":"Review sections"});
   if(!secs.some(x=>x[0]===ptSec))ptSec="overview";
@@ -2940,7 +2941,7 @@ async function figPush(auto){
     else toast(msg);
   }finally{if(b)b.disabled=false}
 }
-$("#pt-figpush").onclick=()=>figPush(false);
+const ptFigBtn=$("#pt-figpush");if(ptFigBtn)ptFigBtn.onclick=()=>figPush(false);
 
 async function ptZip(){
   const btn=$("#pt-zip"),dl=await use("downloads");
@@ -4044,6 +4045,24 @@ $("#tab-proto").textContent=CS.role==="engineer"?"Engineer review":"Review and e
 document.querySelectorAll("#cs-role button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.role===CS.role)));
 
 window.CSX={ST,studyById,addLog,patchStudy,fail,cid,clone,now,LS};
+/* Engineer notes for the designer: the same review records the Study tab lists, shown on Review and export. */
+window.CSX.engNotes=function(){
+  const st=ST();if(!st)return null;
+  const vs=myVersions(st.id);
+  const wrap=document.createElement("div");wrap.className="rb";
+  if(!vs.length){wrap.innerHTML='<p class="rnote" style="padding:0">No version has gone to engineering yet. Choose <b>Send for engineer review</b>. The engineer’s notes will show here.</p>';return wrap}
+  wrap.innerHTML='<ul class="rp-list">'+vs.map(v=>{const rv=reviewOf(v);
+    let b='<li class="rp"><div class="rp-top"><span class="rp-name" style="cursor:default">v'+v.n+' · '+rx(v.title||"Prototype")+'</span><span class="pt-flag'+(v.status==="go"?" ok":v.status==="nogo"?" cs-warn":" cs-neutral")+'">'+({go:"Go",nogo:"No-go",pending:"Waiting for engineering"}[v.status]||v.status)+'</span></div><div class="rp-meta"><span>Sent '+rx(fmtDT(v.at))+'</span>'+(v.note?'<span>Your note: '+rx(v.note)+'</span>':'')+'</div>';
+    if(rv){
+      b+=(rv.summary?'<p class="cs-quote">'+rx(rv.summary)+'</p>':'');
+      const il=rv.itemList||[];
+      if(il.length)b+='<ul class="cs-items">'+il.map(it=>{const m=(rv.items||{})[it.key]||{};const lab={ok:"Feasible",change:"Feasible with changes",no:"Not feasible"}[m.st]||"Not marked";return '<li><span class="pt-flag'+(m.st==="ok"?" ok":m.st==="no"||m.st==="change"?" cs-warn":" cs-neutral")+'">'+lab+'</span> <b>'+rx(it.label)+'</b>'+(m.note?' — '+rx(m.note):'')+'</li>'}).join("")+'</ul>';
+      if(rv.answered)b+='<div class="rlinks" style="margin-top:8px"><button class="tool" type="button" data-apply="'+rx(rv.id)+'">Add '+rv.answered+' answer'+(rv.answered===1?"":"s")+' to my open questions</button></div>';
+    }else b+='<p class="rnote" style="padding:0">No engineer notes yet.</p>';
+    return b+'</li>'}).join("")+'</ul>';
+  wrap.addEventListener("click",e=>{const b=e.target.closest("[data-apply]");if(b)applyAnswers(b.dataset.apply)});
+  return wrap;
+};
 window.csBoot=async function(){
   window.__csBooted=true;
   if(!db){CS.ready=true;refresh();rerenderCurrent();return}
