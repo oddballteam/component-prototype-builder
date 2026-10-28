@@ -491,8 +491,8 @@ function renderCode(){
 const VAR_BOOLS=new Set(["secondary","big","small","disabled","full-width","slim","closeable","bordered","open","open-single","required","tile","striped","stacked","sortable","scrollable","inline","back","continue","primary-alternate","loading","iconless","active","checked","indeterminate","show-shadow","disable-border","use-forms-pattern","header-sr-only","label-sr-only","month-optional","month-year-only","centered-labels","use-div"]);
 let PV={base:null,html:null,tpl:null,ref:null,changed:false};
 const prodHtml=()=>PV.base===current.production&&PV.html!=null?PV.html:String(current.production||"");
-function pvSerialize(){
-  let h=PV.tpl.innerHTML;
+function pvSerialize(tpl){
+  let h=(tpl||PV.tpl).innerHTML;
   VAR_BOOLS.forEach(b=>{h=h.replace(new RegExp("(\\s"+b+")=\"\"","g"),"$1")});
   return h;
 }
@@ -549,6 +549,50 @@ function renderVariants(){
   chips.forEach(c=>host.append(c));
   host.append(vEl("div",{class:"rlinks"},apply,reset));
 }
+/* The same options and Storybook states, for one block on the Compose tab.
+   onChange(html, fromState) is called with the block's new markup. */
+window.buildVariations=function(html,opts){
+  const host=vEl("div",{class:"pv-compose"});
+  let cur=String(html||""),ref=null;
+  function build(){
+    host.innerHTML="";
+    const t=document.createElement("template");t.innerHTML=cur;
+    const els=[...t.content.querySelectorAll("*")].filter(e=>VADS_SPEC[e.localName]).slice(0,6);
+    const groups=[];
+    els.forEach((el,i)=>{
+      const props=VADS_SPEC[el.localName].p,ctl=[];
+      Object.keys(props).forEach(pn=>{
+        const vals=props[pn],id="pvc-"+i+"-"+pn;
+        if(Array.isArray(vals)&&vals.length<=8){
+          const sel=vEl("select",{id});
+          sel.append(vEl("option",{value:"",text:"Not set"}));
+          vals.forEach(v=>sel.append(vEl("option",{value:v,text:v})));
+          sel.value=el.getAttribute(pn)||"";
+          sel.onchange=()=>{if(sel.value)el.setAttribute(pn,sel.value);else el.removeAttribute(pn);cur=pvSerialize(t);ref=null;opts.onChange(cur,false)};
+          ctl.push(vEl("div",{class:"pv-f"},vEl("label",{for:id,text:pn}),sel));
+        }else if(VAR_BOOLS.has(pn)){
+          const cb=vEl("input",{type:"checkbox",id});cb.checked=el.hasAttribute(pn);
+          cb.onchange=()=>{if(cb.checked)el.setAttribute(pn,"");else el.removeAttribute(pn);cur=pvSerialize(t);ref=null;opts.onChange(cur,false)};
+          ctl.push(vEl("div",{class:"pv-f pv-c"},cb,vEl("label",{for:id,text:pn})));
+        }
+      });
+      if(!ctl.length)return;
+      const name=el.getAttribute("text")||el.getAttribute("label")||el.getAttribute("header")||el.getAttribute("heading-text")||"";
+      groups.push(vEl("fieldset",{class:"pv-g"},vEl("legend",{},vEl("code",{text:el.localName}),name?document.createTextNode(" "+name.slice(0,40)):null),...ctl.slice(0,8)));
+    });
+    const tag=els.length?els[0].localName:null,list=tag?stateList(tag):[];
+    if(groups.length)host.append(vEl("div",{class:"pv-gs"},...groups));
+    if(list.length>1)host.append(vEl("div",{class:"pv-ref",role:"group","aria-label":"Storybook states for "+tag},
+      vEl("span",{class:"rnote",style:"padding:0",text:tag+" Storybook states. Choosing one replaces this block’s markup."}),
+      ...list.map(st=>{
+        const b=vEl("button",{type:"button",class:"tool pv-chip","aria-pressed":String(ref===st.n),text:st.n});
+        b.onclick=()=>{ref=st.n;cur=st.h;opts.onChange(cur,true);build()};
+        return b})));
+    if(!host.childNodes.length)host.append(vEl("p",{class:"fhint",text:"No options to change for this block."}));
+  }
+  build();
+  return host;
+};
 function pvChange(){PV.changed=true;PV.ref=null;PV.html=pvSerialize();renderStage();const a=document.querySelector("#variants .btn"),r=document.querySelector("#variants .rlinks .tool");if(a)a.disabled=false;if(r)r.disabled=false;document.querySelectorAll("#variants .pv-chip").forEach(b=>b.setAttribute("aria-pressed","false"))}
 function renderAll(){renderMeta();renderStage();renderVariants();renderCode();$("#refine-go").disabled=!sample||busy}
 
@@ -4431,6 +4475,14 @@ function renderRight(){
   const I=checks(p),nw=I.filter(x=>x.k==="warn").length;
   h+='<div class="group"><p class="ghead">Checks <span class="pt-flag'+(nw?" cs-warn":" ok")+'" style="margin-left:6px">'+(nw?nw+" to fix":"All clear")+'</span></p><div class="inset">'+(I.length?I.map(x=>'<div class="cs-issue"><span>'+(x.k==="info"?'<span class="pt-flag cs-neutral">Note</span> ':'')+rx(x.t)+'</span>'+(x.fix?'<button class="tool cs-sm" type="button" data-fix="'+x.fix+'" data-bid="'+rx(x.bid||"")+'" data-key="'+rx(x.key||"")+'" data-lv="'+(x.lv||"")+'">'+rx(x.fl)+'</button>':(x.bid?'<button class="tool cs-sm" type="button" data-pick="'+rx(x.bid)+'">Show</button>':''))+'</div>').join(""):'<div class="cs-issue"><span><span class="pt-flag ok">OK</span> Headings are in order, spacing is on the scale, and every block is VADS.</span></div>')+'</div></div>';
   r.innerHTML=h;
+  if(b&&b.kind==="vads"&&window.buildVariations){
+    const v=window.buildVariations(b.html,{onChange:(html,fromState)=>{b.html=html;ptSave();if(fromState)renderPages();else renderCenter()}});
+    const g=document.createElement("div");g.className="group";
+    g.innerHTML='<p class="ghead">Variations</p><div class="inset"><div class="cell" id="cs-var"></div></div>';
+    g.querySelector("#cs-var").append(v);
+    const anchor=r.querySelector(".group:nth-of-type(1)");
+    if(anchor)anchor.after(g);else r.prepend(g);
+  }
 }
 window.renderPages=function(){
   const v=$("#view-pages");if(!v||v.hidden)return;
