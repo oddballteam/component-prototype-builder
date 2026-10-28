@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
     "test": "node --test",
-    "split": "node scripts/split-artifact.mjs"
+    "split": "node scripts/split-artifact.mjs",
+    "snapshot": "node scripts/build-snapshot.mjs"
   }
 }

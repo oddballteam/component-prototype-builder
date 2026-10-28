@@ -10,7 +10,7 @@
   --label:#000000; --secondary:#5f5f66; --tertiary:#8e8e93; --sep:rgba(60,60,67,.22);
   --tint:#0063d1; --tint-ink:#ffffff; --green:#248a3d; --red:#d70015; --bar:rgba(255,255,255,.8);
   --dot:rgba(60,60,67,.18); --shadow:0 1px 2px rgba(0,0,0,.05),0 6px 24px rgba(0,0,0,.06);
-  --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",system-ui,"Segoe UI",sans-serif;
+  --sys:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
   --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
   --r-card:14px; --r-ctl:10px;
 }
@@ -321,7 +321,7 @@ td.num{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-num
 .ptsnapbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:6px 18px 14px}
 .ptsnapbar select{flex:1;min-width:180px;max-width:100%;border:0;background:var(--fill);border-radius:10px;padding:9px 10px;min-height:40px;font:inherit;font-size:15px;color:inherit}
 .ptcanvas{background-color:var(--card2);background-image:radial-gradient(var(--dot) 1px,transparent 1.2px);background-size:14px 14px;padding:28px clamp(12px,4vw,40px);margin:0 12px 12px;border-radius:14px}
-.ptshell{font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:16px;line-height:1.5}
+.ptshell{font-family:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:16px;line-height:1.5}
 .ptshell .bar{background:#f1f1f1;color:#454545;font-family:var(--mono);font-size:12px;padding:10px 16px;border-bottom:1px solid #dfe1e2}
 .ptshell .bar.ft{border-top:1px solid #dfe1e2;border-bottom:0}
 .ptshell .bd{padding:16px}
@@ -329,7 +329,7 @@ td.num{font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-num
 .ptshell .cap code{background:#f1f1f1;color:#1b1b1b;padding:1px 6px;border-radius:4px}
 .ptshell .cap.custom code{background:#fff3cd}
 .ptshell .ph{border:1px dashed #a9aeb1;padding:14px;font-size:14px;color:#454545}
-.ptshell h1{font-family:Bitter,Georgia,serif;font-size:1.6rem;margin:4px 0 8px;line-height:1.2}
+.ptshell h1{font-family:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:1.6rem;margin:4px 0 8px;line-height:1.2}
 .pt-t{width:100%;border-collapse:collapse;font-size:14px;min-width:820px}
 .pt-t th,.pt-t td{text-align:left;padding:10px 10px;border-bottom:.5px solid var(--sep);vertical-align:top}
 .pt-t td input,.pt-t td select{width:100%;min-width:170px;border:0;background:var(--fill);border-radius:8px;padding:7px 9px;font:inherit;font-size:14px;color:inherit;min-height:36px}
@@ -465,9 +465,9 @@ pre.cs-tx,pre.cs-md{max-height:360px;overflow:auto;margin:0 18px 14px;background
 .cs-canvas{padding-top:44px}
 .cs-frame{max-width:760px;margin:0 auto;background:#fff;color:#1b1b1b;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.12);color-scheme:light;transition:max-width .3s ease}
 .cs-frame.mobile{max-width:375px}
-.cs-tbar,.cs-fbar{background:#112e51;color:#fff;font:600 13px/1.4 "Source Sans 3",system-ui,sans-serif;padding:12px 18px;opacity:.95}
+.cs-tbar,.cs-fbar{background:#112e51;color:#fff;font:600 13px/1.4 "Public Sans",system-ui,sans-serif;padding:12px 18px;opacity:.95}
 .cs-tbar{border-radius:10px 10px 0 0}.cs-fbar{border-radius:0 0 10px 10px}
-.cs-crumb{font:13px/1.4 "Source Sans 3",system-ui,sans-serif;color:#005ea2;padding:8px 18px;border-bottom:1px solid #dfe1e2}
+.cs-crumb{font:13px/1.4 "Public Sans",system-ui,sans-serif;color:#005ea2;padding:8px 18px;border-bottom:1px solid #dfe1e2}
 .cs-pbody{padding:32px clamp(14px,4vw,40px) 36px}
 .cs-frame.mobile .cs-pbody{padding:24px 16px 28px}
 .cs-blk{position:relative;border-radius:4px;outline:1px dashed transparent;outline-offset:6px;cursor:pointer}

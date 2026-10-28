@@ -34,6 +34,19 @@ The only thing the server does is generate: the browser sends a prompt to this p
 
 Because saving is local: studies, records, the library and the gallery are per browser and per device. They are not shared, and clearing site data erases them. Use the Builder's downloads and Copy buttons to keep or hand off work. Browsers allow roughly 5 MB per site; if it fills, saving shows an error rather than dropping data silently.
 
+## The render-repo snapshot
+
+`public/va-render-snapshot.json` is what the Builder knows about `va-uswds-render`: its 33 `Va*` entries, the layout and text primitives they use, the demo presets as templates, the VA design tokens from css-library, the repo's own token file, the installed web-components version and the font (Public Sans). The Builder loads it when the page opens, puts the entries in the generation prompt, asks Claude for a `spec` next to `production`, shows it in the Spec tab and checks every `type` against the entries. The page footer shows the snapshot's date and versions.
+
+The Builder cannot read the repo live. To refresh the snapshot:
+
+```
+npm run snapshot -- --render-repo ../va-uswds-render     # Node 22.18 or newer; needs npm access for css-library
+npm test
+```
+
+then commit and deploy. `component-library latest` in the snapshot is npm's latest on the day it was built, so the footer shows how far behind it is.
+
 ## Run it locally
 
 ```
@@ -53,7 +66,9 @@ Step by step: see "Component Builder: First Deploy Steps". In short: import the 
 - **Function time.** `vercel.json` asks for up to 300 seconds on `/api/sample`. Whether your Vercel plan allows that has not been checked.
 - **Figma push.** Not available; SVG download is the fallback.
 - **Copy.** Some messages still say "opened in Claude" or "signed in on claude.ai". They only show when generating is unavailable (or in the sharing hints). Search `app.js` for "in Claude" and "claude.ai" and reword them.
-- **VA component library link.** The plan to render through `va-uswds-render` and `@department-of-veterans-affairs/component-library` (tokens, templates, Public Sans) is separate and not part of this package. See the integration plan.
+- **Only components emit a spec so far.** Forms and records still produce what they did before. The kit's `spec.json` is page structure only (each block becomes its Va* key with empty props), because blocks do not carry props.
+- **No HTML-to-spec converter yet.** That, the shared package and the demo changes are repo-side work in `va-uswds-render` and are not part of this package.
+- **Colours differ from css-library.** The Builder's own preview tokens do not all match VA's: `--vads-color-success` is #2e8540 here and #00a91c in css-library, `warning` #ffc107 vs #ffbe2e, `base` #3d4551 vs #1b1b1b, and the spacing and `action`/`focus`/gray names the Builder uses do not exist in css-library. They are left as they were until someone decides which wins.
 
 ## Secrets
 

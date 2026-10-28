@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Component Builder Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -65,6 +68,11 @@
           <textarea id="prompt" placeholder="A card that shows a Veteran their claim status, with a progress bar and a link to claim details."></textarea>
         </div>
         <p class="gfoot">Say what a Veteran sees and does. One prompt is enough. The agent builds it from VADS components only.</p>
+        <div id="tmpl-wrap" hidden>
+          <label class="ghead" for="tmpl">Start from a template</label>
+          <div class="inset"><select id="tmpl" aria-describedby="tmpl-note"><option value="">No template</option></select></div>
+          <p class="gfoot" id="tmpl-note">Templates come from the render repo's demo presets. The agent adapts the one you pick.</p>
+        </div>
       </div>
 
       <div class="group">
@@ -131,6 +139,7 @@
           <div class="seg" role="tablist" aria-label="Output">
             <button role="tab" aria-selected="true" data-tab="prod" id="ct-prod">Production</button>
             <button role="tab" aria-selected="false" data-tab="check" id="ct-check">VADS check</button>
+            <button role="tab" aria-selected="false" data-tab="spec" id="ct-spec" hidden>Spec</button>
             <button role="tab" aria-selected="false" data-tab="src" id="ct-src">Preview source</button>
           </div>
           <button class="tool" id="copy">Copy</button>
@@ -340,6 +349,7 @@
     <div id="ex-grid" class="grid"></div>
   </section>
 </div>
+<p class="rnote" id="snapstamp" hidden style="text-align:center;margin:24px 16px"></p>
 <div class="toast" id="toast" hidden></div>
 <div id="cs-scrim" hidden></div>
 <div class="cs-modal" id="cs-lib-modal" role="dialog" aria-modal="true" aria-labelledby="cs-lib-h" hidden>

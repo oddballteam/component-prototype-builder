@@ -114,7 +114,7 @@ css:`.c-appt{width:min(100%,380px);background:#fff;border:1px solid var(--vads-c
 .c-in{position:relative;padding:var(--vads-space-5);padding-top:var(--vads-space-6)}
 .c-date{position:absolute;top:-26px;left:var(--vads-space-5);background:#fff;border:1px solid var(--vads-color-gray-light);width:52px;padding:4px 0;text-align:center;line-height:1.1;animation:c-pop 280ms 380ms cubic-bezier(.2,.8,.2,1) both}
 .c-date span{display:block;font-size:.75rem;color:var(--vads-color-error);font-weight:700}
-.c-date strong{font-size:1.4rem;font-family:var(--font-serif)}
+.c-date strong{font-size:1.4rem;font-family:var(--font-heading)}
 .c-eye{margin:var(--vads-space-3) 0 0;font-size:.875rem;color:var(--vads-color-base);font-weight:600}
 .c-appt h3{margin:2px 0 var(--vads-space-3);font-size:1.5rem}
 .c-dl{list-style:none;margin:0 0 var(--vads-space-4);padding:0;display:grid;gap:6px}
@@ -273,7 +273,7 @@ TOKENS available as CSS custom properties in the preview:
 --vads-color-error #d54309; --vads-color-error-lighter #f4e3db; --vads-color-info #00bde3; --vads-color-info-lighter #e7f6f8;
 --vads-color-base #3d4551; --vads-color-base-darkest #1b1b1b; --vads-color-gray-medium #757575; --vads-color-gray-light #d6d7d9; --vads-color-gray-lightest #f1f1f1; --vads-color-white #fff; --vads-color-focus #ffbe2e.
 Spacing: --vads-space-1 4px, -2 8px, -3 12px, -4 16px, -5 20px, -6 24px, -8 32px, -10 40px, -12 48px.
-Fonts: headings var(--font-serif) (Bitter 700); body var(--font-sans) (Source Sans 3). Sizes: h1 2.5rem, h2 1.875rem, h3 1.5rem, h4 1.25rem, body 1rem, small .875rem. Line height 1.5 body, 1.3 headings.
+Fonts: headings var(--font-heading) (Public Sans 700); body var(--font-sans) (Public Sans). Sizes: h1 2.5rem, h2 1.875rem, h3 1.5rem, h4 1.25rem, body 1rem, small .875rem. Line height 1.5 body, 1.3 headings.
 LOOK: VA.gov is calm, square and high-contrast. Radius 0 to 4px. Primary button: #005ea2 bg, white 700 text, 4px radius, 10px 20px padding, hover #1a4480. Secondary button: white bg, inset 2px #005ea2 border, #005ea2 text. Cards: white, 1px gray-light border, optional 4px colored top border. Alerts: 6px left border in status color on the matching -lighter background. Focus: 2px solid var(--vads-color-focus) outline, 2px offset.
 ACCESSIBILITY: WCAG 2.1 AA. Text contrast 4.5:1, UI 3:1. Every input has a visible label. Visible focus. Keyboard operable. Async results go in role="status". Never convey state with color alone.
 CONTENT: Plain language at a 6th to 8th grade level. Address the Veteran as "you". Active voice. Sentence case headings and buttons. Buttons start with a verb. Dates like "January 14, 2027". Phone numbers like 800-827-1000. Never "click here".
@@ -287,23 +287,62 @@ const OUTPUT_SPEC = `Reply with ONLY one JSON object, no prose, shaped like:
 PRODUCTION RULES: Only tags and attributes from the component list, vads-u-* utility classes for spacing and typography, and semantic HTML. Use only the allowed values the list gives. No <style>, no inline style attributes, no custom classes, no animation. The page renders "production" with the real VADS web components, so what you write is exactly what the designer sees. Do not write a separate preview. "custom" is an empty list when VADS covers everything, which is the goal. Use realistic VA content, never lorem ipsum or real personal data.`;
 
 function VADS_PROMPT(){return VADS_KNOWLEDGE.split("\n").filter(l=>/^(RULE|PRODUCTION COMPONENTS|ACCESSIBILITY|CONTENT|VADS ALIGNMENT|VA DESIGN SYSTEM)/.test(l)).join("\n")+"\n\nCOMPONENT LIST (web-components "+VADS_SPEC_VER+", the version the preview runs):\n"+specList()}
+/* ---------- render-repo snapshot (va-uswds-render entries, tokens, templates) ---------- */
+let SNAP=null;
+const SNAPP=fetch("va-render-snapshot.json").then(r=>r.ok?r.json():null).then(j=>{SNAP=j&&Array.isArray(j.entries)?j:null;snapReady()}).catch(()=>null);
+function snapKeys(){return SNAP?new Set(SNAP.entries.concat(SNAP.primitives||[]).map(e=>e.key)):null}
+function snapReady(){
+  const el=document.getElementById("snapstamp");
+  if(el&&SNAP){
+    const v=SNAP.versions||{},d=(SNAP.generatedAt||"").slice(0,10);
+    el.textContent="VA components from va-uswds-render ("+SNAP.entries.length+" entries, web-components "+(v.webComponentsInstalled||"?")+", css-library "+(v.cssLibrary||"?")+"). Snapshot "+d+(v.componentLibraryLatest?"; component-library latest then: "+v.componentLibraryLatest:"")+". Font: "+((SNAP.styling||{}).font||"Public Sans")+".";
+    el.hidden=false;
+  }
+  const t=document.getElementById("tmpl");
+  if(t&&SNAP&&(SNAP.templates||[]).length&&t.options.length<2){
+    SNAP.templates.forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=x.label;t.append(o)});
+    document.getElementById("tmpl-wrap").hidden=false;
+  }
+}
+function renderRepoPrompt(){
+  if(!SNAP)return "";
+  const line=e=>"- "+e.key+" ("+(e.tagName||"no tag")+")"+(e.slots&&e.slots.length?" [takes children]":"")+": "+e.description+(e.propDescriptions?"\n  props: "+Object.entries(e.propDescriptions).map(([k,v])=>k+" = "+v).join("; "):"")+"\n  example props: "+JSON.stringify(e.example);
+  return "RENDER SPEC. Also return a \"spec\" property in the JSON object: a json-render spec of the same component, drawn by the va-uswds-render registry. Shape: {\"root\":\"id\",\"elements\":{\"id\":{\"type\":\"Key\",\"props\":{},\"children\":[\"id\"]}}}.\n"+
+  "SPEC RULES: type is exactly one of the keys below, never the tag name. Props are camelCase versions of the attribute names. Text goes in the text prop, never as a string child. children holds element ids only, and every id used must exist in elements. Set root to exactly one element id; when there are several top-level parts, use Section as root. Content for a [takes children] component goes in its children (a Heading then Text, or other VA components). The spec must describe the same components as production. If no key fits, use the closest one and list the gap in custom.\n\n"+
+  "VA COMPONENT KEYS (from va-uswds-render, web-components "+((SNAP.versions||{}).webComponentsInstalled||"?")+"):\n"+SNAP.entries.map(line).join("\n")+"\n\nPRIMITIVE KEYS:\n"+(SNAP.primitives||[]).map(line).join("\n")+"\n\nFONT: "+((SNAP.styling||{}).font||"Public Sans")+". Do not set fonts; the library supplies them.";
+}
+function checkSpec(sp){
+  const w=[];
+  if(!sp||typeof sp!=="object"||typeof sp.root!=="string"||!sp.elements||typeof sp.elements!=="object")return ["No valid spec came back (needs root and elements)."];
+  const keys=snapKeys(),els=sp.elements;
+  if(!els[sp.root])w.push("root \""+sp.root+"\" is not in elements.");
+  Object.entries(els).forEach(([id,e])=>{
+    if(!e||typeof e.type!=="string"){w.push(id+": missing type.");return}
+    if(keys&&!keys.has(e.type))w.push(id+": \""+e.type+"\" is not a known key.");
+    (Array.isArray(e.children)?e.children:[]).forEach(c=>{if(!els[c])w.push(id+": child \""+c+"\" does not exist.")});
+  });
+  return w;
+}
 function buildPrompt(text, base){
   let p = "You are the VADS Component Builder agent. You build VA.gov UI components that stay aligned to the VA Design System, strictly following the VA Design System reference below.\n\n" + VADS_PROMPT() + "\n\n" + OUTPUT_SPEC + "\n\n";
+  const rr=renderRepoPrompt();if(rr)p+=rr+"\n\n";
   if(base){
-    const slim = {title:base.title,summary:base.summary,components:base.components,preview:base.preview,production:base.production,custom:base.custom||[],a11y:base.a11y};
+    const slim = {title:base.title,summary:base.summary,components:base.components,preview:base.preview,production:base.production,spec:base.spec||undefined,custom:base.custom||[],a11y:base.a11y};
     p += "CURRENT COMPONENT (JSON):\n" + JSON.stringify(slim) + "\n\nCHANGE REQUEST: " + text + "\nApply the change and return the complete updated component in the same JSON shape.";
   } else {
+    const tid=(document.getElementById("tmpl")||{}).value,tp=SNAP&&tid&&(SNAP.templates||[]).find(x=>x.id===tid);
+    if(tp)p+="STARTING TEMPLATE (a valid spec from the render repo, built from USWDS primitives. Adapt it to the request and keep production in step with it. Replace USWDS parts with the Va* key when one exists: Alert becomes VaAlert, Button becomes VaButton, Card becomes VaCard, Input becomes VaTextInput. Keep Section, GridContainer, Grid, Heading and Text for layout and text. If a part has no Va* key, keep it and list it in custom):\n"+JSON.stringify(tp.spec)+"\n\n";
     p += "REQUEST: " + text;
   }
   return p;
 }
 
 /* ---------- Preview document ---------- */
-const BASE_CSS = `:root{--vads-color-primary:#005ea2;--vads-color-primary-dark:#1a4480;--vads-color-primary-darker:#162e51;--vads-color-action:#005ea2;--vads-color-success:#2e8540;--vads-color-success-lighter:#ecf3ec;--vads-color-warning:#ffc107;--vads-color-warning-lighter:#faf3d1;--vads-color-error:#d54309;--vads-color-error-lighter:#f4e3db;--vads-color-info:#00bde3;--vads-color-info-lighter:#e7f6f8;--vads-color-base:#3d4551;--vads-color-base-darkest:#1b1b1b;--vads-color-gray-medium:#757575;--vads-color-gray-light:#d6d7d9;--vads-color-gray-lightest:#f1f1f1;--vads-color-white:#fff;--vads-color-focus:#ffbe2e;--vads-space-1:4px;--vads-space-2:8px;--vads-space-3:12px;--vads-space-4:16px;--vads-space-5:20px;--vads-space-6:24px;--vads-space-8:32px;--vads-space-10:40px;--vads-space-12:48px;--font-serif:"Bitter",Georgia,serif;--font-sans:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;color-scheme:light}
+const BASE_CSS = `:root{--vads-color-primary:#005ea2;--vads-color-primary-dark:#1a4480;--vads-color-primary-darker:#162e51;--vads-color-action:#005ea2;--vads-color-success:#2e8540;--vads-color-success-lighter:#ecf3ec;--vads-color-warning:#ffc107;--vads-color-warning-lighter:#faf3d1;--vads-color-error:#d54309;--vads-color-error-lighter:#f4e3db;--vads-color-info:#00bde3;--vads-color-info-lighter:#e7f6f8;--vads-color-base:#3d4551;--vads-color-base-darkest:#1b1b1b;--vads-color-gray-medium:#757575;--vads-color-gray-light:#d6d7d9;--vads-color-gray-lightest:#f1f1f1;--vads-color-white:#fff;--vads-color-focus:#ffbe2e;--vads-space-1:4px;--vads-space-2:8px;--vads-space-3:12px;--vads-space-4:16px;--vads-space-5:20px;--vads-space-6:24px;--vads-space-8:32px;--vads-space-10:40px;--vads-space-12:48px;--font-serif:Bitter,Georgia,serif;--font-sans:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;--font-heading:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;color-scheme:light}
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;background:#fff}
 body{font-family:var(--font-sans);font-size:16px;line-height:1.5;color:var(--vads-color-base-darkest)}
-h1,h2,h3,h4{font-family:var(--font-serif);line-height:1.3;font-weight:700}
+h1,h2,h3,h4{font-family:var(--font-heading);line-height:1.3;font-weight:700}
 .stage{padding:36px 24px;display:flex;justify-content:center;align-items:flex-start}
 .stage>*{max-width:100%}`;
 const RM_CSS = `*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important;transition-delay:0ms!important}`;
@@ -318,7 +357,7 @@ function buildDoc(item,{spec=false,rm=false,thumb=false}={}){
 try{new ResizeObserver(s).observe(document.body)}catch(e){}addEventListener('load',s);s();
 ${spec?`setTimeout(function(){var n=0;document.querySelectorAll('.stage *').forEach(function(e){if(n>=22)return;var r=e.getBoundingClientRect();if(r.width<44||r.height<14)return;if(e.closest('.__spec'))return;n++;var l=document.createElement('span');l.className='__spec';l.textContent=Math.round(r.width)+'\\u00d7'+Math.round(r.height);l.style.left=(r.left+scrollX)+'px';l.style.top=Math.max(0,r.top+scrollY-15)+'px';document.body.appendChild(l)})},1500);`:""}})();<\/script>`;
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=Source+Sans+3:wght@400;600;700&family=Roboto+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&family=Roboto+Mono:wght@500&display=swap">
 <style>${BASE_CSS}</style><style>${p.css||""}</style>${rm?`<style>${RM_CSS}</style>`:""}${spec?`<style>${SPEC_CSS}</style>`:""}${thumb?`<style>.stage{zoom:.72;padding:28px 16px}</style>`:""}
 </head><body><div class="stage">${p.html||""}</div><script>try{${esc(p.js)}}catch(e){console.error(e)}<\/script>${meas}</body></html>`;
 }
@@ -401,6 +440,7 @@ function vadsCheckView(item){
 function renderCode(){
   const body=$("#code-body");body.innerHTML="";
   document.querySelectorAll(".code-tabs [role=tab]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===codeTab)));
+  $("#ct-spec").hidden=!current.spec&&!SNAP;
   const hasSrc=!!(current.preview&&current.preview.html);$("#ct-src").hidden=!hasSrc;if(!hasSrc&&codeTab==="src")codeTab="prod";
   document.querySelectorAll(".code-tabs [role=tab]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===codeTab)));
   $("#copy").hidden = codeTab==="check";
@@ -409,6 +449,14 @@ function renderCode(){
     (current.components||[]).forEach(c=>{const s=document.createElement("span");s.className="comp";s.textContent=c;cl.append(s)});
     const pre=document.createElement("pre");pre.textContent=current.production||"";
     body.append(cl,pre);
+  }else if(codeTab==="spec"){
+    const pre=document.createElement("pre");
+    pre.textContent=current.spec?JSON.stringify(current.spec,null,2):"No spec for this component yet. Generate or refine it, and the render spec will appear here. Examples built into the page do not have one.";
+    body.append(pre);
+    const ws=current.spec?(current.specWarnings&&current.specWarnings.length?current.specWarnings:checkSpec(current.spec)):[];
+    const note=document.createElement("p");note.className="rnote"+(ws.length?" warn":"");
+    note.textContent=current.spec?(ws.length?"Check before using this spec: "+ws.join(" "):"Every type in this spec is a key in the snapshot."):"";
+    if(note.textContent)body.append(note);
   }else if(codeTab==="src"){
     const p=current.preview||{};const pre=document.createElement("pre");
     pre.textContent="<!-- HTML -->\n"+(p.html||"")+"\n\n/* CSS */\n"+(p.css||"")+(p.js?"\n\n// JS\n"+p.js:"");
@@ -471,13 +519,14 @@ function normalize(o,promptText){
   return {title:String(o.title||"Untitled component"),summary:String(o.summary||""),prompt:promptText,
     components:Array.isArray(o.components)?o.components.map(String).slice(0,16):[],
     preview:{html:o.preview.html,css:String(o.preview.css||""),js:String(o.preview.js||"")},
-    production:String(o.production||""),motion:[],custom:Array.isArray(o.custom)?o.custom.slice(0,8):[],a11y:Array.isArray(o.a11y)?o.a11y.map(String).slice(0,6):[]};
+    production:String(o.production||""),spec:o.spec&&typeof o.spec==="object"?o.spec:null,specWarnings:SNAP?checkSpec(o.spec):[],motion:[],custom:Array.isArray(o.custom)?o.custom.slice(0,8):[],a11y:Array.isArray(o.a11y)?o.a11y.map(String).slice(0,6):[]};
 }
 async function run(text,base){
   if(!sample||busy||!text.trim())return;
   ctl=new AbortController();setBusy(true);
   status("Thinking. This usually takes 30 to 60 seconds.",{live:true});
   try{
+    await SNAPP;
     const out=await sample.json(buildPrompt(text.trim(),base),{signal:ctl.signal,cache:false,
       onText:({text:t})=>status("Writing component\u2026 "+(t.length/1000).toFixed(1)+"k characters",{live:true})});
     current=normalize(out,base?(base.prompt+" \u2192 "+text.trim()):text.trim());
@@ -496,7 +545,7 @@ $("#refine-go").onclick=()=>{const v=$("#refine").value;if(v.trim()){run(v,curre
 $("#refine").addEventListener("keydown",e=>{if(e.key==="Enter")$("#refine-go").click()});
 
 /* ---------- Community ---------- */
-function stripForShare(it){return{id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),title:it.title,summary:it.summary,prompt:String(it.prompt||"").slice(0,600),components:it.components,preview:it.preview,production:it.production,motion:it.motion,a11y:it.a11y,createdAt:Date.now()}}
+function stripForShare(it){return{id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),title:it.title,summary:it.summary,prompt:String(it.prompt||"").slice(0,600),components:it.components,preview:it.preview,production:it.production,spec:it.spec||null,motion:it.motion,a11y:it.a11y,createdAt:Date.now()}}
 $("#share").onclick=async()=>{
   if(!db||!uid||current.example||current.sharedId)return;
   const sh=$("#share");sh.disabled=true;sh.textContent="Sharing\u2026";
@@ -782,7 +831,7 @@ function previewRuntime(root,D,emit){
 
 const FORM_CSS = `
 .fm{max-width:640px;margin:0 auto;padding:28px 24px 36px}
-.h,.h2,.h3{font-family:var(--font-serif);line-height:1.3;margin:0 0 12px;outline:none}
+.h,.h2,.h3{font-family:var(--font-heading);line-height:1.3;margin:0 0 12px;outline:none}
 h1.h{font-size:2rem}.h2{font-size:1.5rem;margin-top:28px}h2.h{font-size:1.625rem}.h3{font-size:1.25rem}
 .subt{margin:0 0 16px;color:var(--vads-color-base)}
 .lead{font-size:1.1875rem;line-height:1.5;margin:0 0 20px}
@@ -814,14 +863,14 @@ fieldset.fld[data-t=fullname]>.sub{margin-bottom:12px;max-width:30rem}
 .start{margin:8px 0 14px}
 .lnk{font:inherit;font-weight:700;color:var(--vads-color-action);background:none;border:0;padding:4px 0;cursor:pointer;text-decoration:underline}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.rvs{border-top:1px solid var(--vads-color-gray-light);padding-top:12px;margin-bottom:20px}.rvh{display:flex;justify-content:space-between;align-items:baseline;gap:12px}.rvh h3{font-family:var(--font-serif);font-size:1.25rem;margin:0}
+.rvs{border-top:1px solid var(--vads-color-gray-light);padding-top:12px;margin-bottom:20px}.rvh{display:flex;justify-content:space-between;align-items:baseline;gap:12px}.rvh h3{font-family:var(--font-heading);font-size:1.25rem;margin:0}
 dl{margin:8px 0 0}.rv{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:12px;padding:6px 0}dt{font-weight:700}dd{margin:0;overflow-wrap:anywhere}
 .alert{border-left:6px solid var(--vads-color-success);background:var(--vads-color-success-lighter);padding:16px 20px;margin-bottom:16px}.alert p{margin:0}
 :focus-visible{outline:2px solid var(--vads-color-focus);outline-offset:2px}
 .wrap{container-type:inline-size}
 @container (max-width:480px){.fm{padding:20px 16px 28px}.rv{grid-template-columns:1fr;gap:2px}}
 `;
-const FORM_FONTS="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap";
+const FORM_FONTS="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;600;700&display=swap";
 function formShadowCss(){
   const vars=BASE_CSS.match(/:root\{[^}]*\}/)[0].replace(":root",":host");
   return vars+"\n:host{display:block;background:#fff;color:#1b1b1b;font-family:var(--font-sans);font-size:16px;line-height:1.5}\n*,*::before,*::after{box-sizing:border-box}\n"+FORM_CSS;
@@ -1724,7 +1773,8 @@ function rPretty(h){
 
 /* ----- live components (real VA web components from unpkg, styled inside each preview's shadow root) ----- */
 let rLive=null,rSheet=undefined;
-const R_PREFIX=':host{display:block;font-family:"Source Sans 3","Source Sans Pro",system-ui,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b}';
+const R_FONT=':host,:root{--vads-font-family-sans:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;--vads-font-family-heading:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;--font-family-sans:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif}html,body,.usa-sans,.usa-sans *{font-family:var(--vads-font-family-sans)}h1,h2,h3,h4,h5,h6{font-family:var(--vads-font-family-heading)!important}';
+const R_PREFIX=':host{display:block;font-family:"Public Sans","Helvetica Neue",Helvetica,Roboto,Arial,sans-serif;font-size:16px;line-height:1.5;color:#1b1b1b}';
 function rLoadLive(){
   if(rLive)return rLive;
   rLive=new Promise(res=>{
@@ -1738,13 +1788,13 @@ function rLoadLive(){
 }
 function rSheetGet(){
   if(rSheet!==undefined)return rSheet;
-  try{rSheet=new CSSStyleSheet();rSheet.replaceSync(R_PREFIX+REF_CSS)}catch(e){rSheet=null}
+  try{rSheet=new CSSStyleSheet();rSheet.replaceSync(R_PREFIX+REF_CSS+R_FONT)}catch(e){rSheet=null}
   return rSheet;
 }
 function rMountPreview(el,html){
   const root=el.attachShadow({mode:"open"});
   const sh=rSheetGet();
-  if(sh)root.adoptedStyleSheets=[sh];else{const st=document.createElement("style");st.textContent=R_PREFIX+REF_CSS;root.append(st)}
+  if(sh)root.adoptedStyleSheets=[sh];else{const st=document.createElement("style");st.textContent=R_PREFIX+REF_CSS+R_FONT;root.append(st)}
   const w=document.createElement("div");w.innerHTML=html;root.append(w);
   root.addEventListener("click",e=>{if(e.composedPath().some(n=>n&&n.localName==="a"))e.preventDefault()});
 }
@@ -2673,6 +2723,22 @@ function ptPrompt(){
   L.push("When you finish, tell me the preview URL so I can add it to the engineer review.");
   return L.join("\n")+"\n";
 }
+/* One json-render spec per composed page, built from the page's blocks. Props are empty because blocks do not carry props; this is the page structure, not a finished render. */
+function ptSpecs(){
+  const byTag={};if(SNAP)SNAP.entries.forEach(e=>{byTag[e.tagName]=e.key});
+  return {note:"Structure only: each block becomes an element of the matching Va* key with empty props. Blocks with no matching key are listed in warnings.",
+    snapshot:SNAP?{generatedAt:SNAP.generatedAt,webComponents:(SNAP.versions||{}).webComponentsInstalled}:null,
+    pages:PT.pages.map(pg=>{
+      const elements={},children=[],warnings=[];
+      pg.blocks.forEach((b,i)=>{
+        const key=byTag[b.tag];
+        if(!key){warnings.push((b.tag||"custom block")+(b.kind==="custom"?" (custom: "+(b.why||"no reason given")+")":" has no entry in the snapshot"));return}
+        const id=b.tag.replace(/^va-/,"")+"-"+(i+1);elements[id]={type:key,props:{},children:[]};children.push(id);
+      });
+      elements.page={type:"Section",props:{},children};
+      return {id:pg.id,title:pg.title||"Untitled page",spec:{root:"page",elements},warnings};
+    })};
+}
 function ptFiles(){
   const n=ptName(),F={};
   F["README.md"]=["# Prototype bundle: "+ptTitle(),"","Made with the VADS Component Builder.","","1. Copy the `"+n+"/` folder into `va-prototype-kit/src/prototypes/`.","2. Open the kit in Claude Code and paste the contents of `"+n+"/component-builder/claude-code-prompt.md`.","3. Review `"+n+"/component-builder/engineer-review.md` with engineering.","","`prototype.yml` and `prd.md` follow the kit’s format. The `component-builder/` files are inputs to the build and are safe to delete after it.",""].join("\n");
@@ -2681,6 +2747,7 @@ function ptFiles(){
   F[n+"/component-builder/brief.json"]=JSON.stringify(ptBrief(),null,2)+"\n";
   if(ptUsesForm())F[n+"/component-builder/form.json"]=JSON.stringify(toModelJSON(FS.m),null,2)+"\n";
   F[n+"/component-builder/engineer-review.md"]=ptReviewMd();
+  F[n+"/component-builder/spec.json"]=JSON.stringify(ptSpecs(),null,2)+"\n";
   F[n+"/component-builder/claude-code-prompt.md"]=ptPrompt();
   return F;
 }
@@ -2770,8 +2837,8 @@ function figTree(){
 }
 const FIG_RUNNER=`
 const hex=h=>({r:parseInt(h.slice(1,3),16)/255,g:parseInt(h.slice(3,5),16)/255,b:parseInt(h.slice(5,7),16)/255});
-let FAM="Source Sans 3";
-try{await figma.loadFontAsync({family:"Source Sans 3",style:"Regular"});await figma.loadFontAsync({family:"Source Sans 3",style:"Bold"})}
+let FAM="Public Sans";
+try{await figma.loadFontAsync({family:"Public Sans",style:"Regular"});await figma.loadFontAsync({family:"Public Sans",style:"Bold"})}
 catch(e){FAM="Inter";await figma.loadFontAsync({family:"Inter",style:"Regular"});await figma.loadFontAsync({family:"Inter",style:"Bold"})}
 function build(n,parent){
   if(n.kind==="text"){
@@ -2797,7 +2864,7 @@ return{createdNodeIds:ids,pages:PAGES.length};
 `;
 function figCode(pages){return"const PAGES="+JSON.stringify(pages)+";\n"+FIG_RUNNER}
 function figSvg(pages){
-  const GAP=80,PAD=24,FONT="Source Sans 3, Arial, sans-serif";
+  const GAP=80,PAD=24,FONT="Public Sans, Arial, sans-serif";
   const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   let x0=0,H=0;const groups=[];
   pages.forEach(p=>{
