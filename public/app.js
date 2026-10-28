@@ -928,6 +928,10 @@ function normForm(o,promptText){
   };
 }
 
+/* A new user's starting point: an empty intro and one empty chapter with one empty page. The Forms tab can't hold zero chapters, so this is the smallest blank form it accepts. */
+function blankForm(){
+  return normForm({title:"",formName:"",formId:"XX-XXXX",intro:"",whatToKnow:[],chapters:[{type:"custom",title:"Chapter 1",pages:[{title:"Page 1",body:"",components:[]}]}]},"");
+}
 function exampleForm(){
   return normForm({
     title:"Request your military service records",formName:"Request for Military Service Records",formId:"XX-XXXX",
@@ -996,7 +1000,7 @@ try{
   const raw = localStorage.getItem(DRAFT_KEY);
   if(raw){const d=JSON.parse(raw);if(d&&d.m&&Array.isArray(d.m.chapters)&&d.m.chapters.length){FS.m=d.m;FS.ans=d.ans||{}}}
 }catch(e){}
-if(!FS.m)FS.m = exampleForm();
+if(!FS.m)FS.m = blankForm();
 
 function fel(tag,props,...kids){
   const e=document.createElement(tag);
@@ -1958,6 +1962,37 @@ const PT_TYPES=[
   ["mix","Mix","A form flow plus pages you compose."]
 ];
 const PT_TYPE_LABEL={form:"Standard form flow",subtask:"Sub-task",page:"Application page",mix:"Mix"};
+
+/* ---------- Templates that follow "What are you building?" ----------
+   Page templates add composed pages (VADS blocks, in order). Form templates replace the form on the Forms tab (Undo is there). */
+const PT_PAGE_TEMPLATES=[
+  {id:"dash",name:"Benefits dashboard",desc:"What a Veteran needs first, then where to go next.",blocks:[["va-alert","Important update"],["va-summary-box","Key information"],["va-card","Benefit or claim card"],["va-link-action","Main action"],["va-need-help","Need help"]]},
+  {id:"status",name:"Claim or request status",desc:"Where things stand, what is done, and what happens next.",blocks:[["va-tag-status","Current status"],["va-process-list","Steps"],["va-table","Documents and updates"],["va-accordion","What happens next"],["va-need-help","Need help"]]},
+  {id:"detail",name:"Detail view",desc:"One record in full, with a way to jump around the page.",blocks:[["va-on-this-page","On this page"],["va-summary-box","Main facts"],["va-accordion","Full details"],["va-additional-info","Term or rule help"],["va-button","Next step"]]},
+  {id:"settings",name:"Settings page",desc:"Choices a Veteran can change and save.",blocks:[["va-radio","Single choice"],["va-checkbox-group","Several choices"],["va-text-input","Editable value"],["va-button-pair","Save and Cancel"],["va-alert","Saved confirmation"]]},
+  {id:"search",name:"Search and results",desc:"Find something, then browse a long list.",blocks:[["va-search-input","Search box"],["va-table","Results"],["va-pagination","Page controls"]]}
+];
+const PT_FORM_TEMPLATES=[
+  {id:"f-blank",name:"Blank form",desc:"An empty introduction and one empty chapter.",kinds:["form","subtask","mix"],make:()=>blankForm()},
+  {id:"f-core",name:"Personal, address and contact",desc:"Three chapters most VA forms start with. Review and confirmation pages come with every form.",kinds:["form","mix"],make:()=>normForm({title:"New form",formName:"",formId:"XX-XXXX",intro:"",whatToKnow:[],chapters:[{type:"personal",title:"Your personal information",includeDob:true,includeServiceNumber:false},{type:"address",title:"Mailing address",militaryCheckbox:true},{type:"phone_email",title:"Contact information",includeEmail:true}]},"")},
+  {id:"f-example",name:"Example: request military service records",desc:"A finished five-chapter form to learn from or edit.",kinds:["form","mix"],make:()=>exampleForm()},
+  {id:"f-contact",name:"Update contact information",desc:"Two steps: mailing address, then phone and email.",kinds:["subtask"],make:()=>normForm({title:"Update your contact information",formName:"",formId:"XX-XXXX",intro:"",whatToKnow:[],chapters:[{type:"address",title:"Mailing address",militaryCheckbox:true},{type:"phone_email",title:"Phone and email",includeEmail:true}]},"")},
+  {id:"f-confirm",name:"Confirm personal information",desc:"One step: check name and date of birth.",kinds:["subtask"],make:()=>normForm({title:"Confirm your personal information",formName:"",formId:"XX-XXXX",intro:"",whatToKnow:[],chapters:[{type:"personal",title:"Your personal information",includeDob:true,includeServiceNumber:false}]},"")}
+];
+function ptApplyPageTemplate(t){if(window.__applyPageTemplate)window.__applyPageTemplate(t)} /* defined with the Compose code, which owns the block format */
+function ptApplyFormTemplate(t){
+  snap();FS.m=t.make();FS.ans={};FS.sel="intro";FS.step="intro";afterStruct();ptRender();
+  toast(t.name+" is now the form. Undo is on the Forms tab.");
+}
+function ptTemplateGroup(){
+  const forms=PT_FORM_TEMPLATES.filter(t=>t.kinds.includes(PT.type)),pages=(PT.type==="page"||PT.type==="mix")?PT_PAGE_TEMPLATES:[];
+  const row=(t,kind,fn)=>fel("div",{class:"cell"},fel("div",{class:"tx"},fel("b",{text:t.name}),fel("p",{class:"fhint",text:t.desc+(kind==="form"?" Replaces the form on the Forms tab.":" Adds a page.")})),
+    (b=>{b.onclick=()=>fn(t);return b})(fel("button",{class:"tool",type:"button","aria-label":"Use the "+t.name+" template",text:"Use"})));
+  const rows=[].concat(forms.map(t=>row(t,"form",ptApplyFormTemplate)),pages.map(t=>row(t,"page",ptApplyPageTemplate)));
+  return fel("div",{class:"group"},fel("p",{class:"ghead",id:"pt-tmpl-h",text:"Start from a template"}),
+    fel("div",{class:"inset",role:"group","aria-labelledby":"pt-tmpl-h"},rows),
+    fel("p",{class:"gfoot",text:"Templates match what you are building. Choose a different type above to see its templates."}));
+}
 const PT_SRC=[["user","Veteran enters it"],["prefill","Prefilled from profile"],["api","Looked up from another system"],["derived","Worked out from other answers"],["static","Static content"]];
 const PT_SRC_LABEL=Object.fromEntries(PT_SRC);
 const PT_VADS=[["va-accordion","Accordion"],["va-additional-info","Additional info"],["va-alert","Alert"],["va-alert-expandable","Alert, expandable"],["va-banner","Banner"],["va-breadcrumbs","Breadcrumbs"],["va-button","Button"],["va-button-pair","Button pair"],["va-card","Card"],["va-checkbox","Checkbox"],["va-checkbox-group","Checkbox group"],["va-date","Date"],["va-file-input","File input"],["va-link","Link"],["va-link-action","Link, action"],["va-memorable-date","Memorable date"],["va-need-help","Need help"],["va-search-input","Search input"],["va-modal","Modal"],["va-on-this-page","On this page"],["va-pagination","Pagination"],["va-process-list","Process list"],["va-radio","Radio"],["va-segmented-progress-bar","Segmented progress bar"],["va-select","Select"],["va-summary-box","Summary box"],["va-table","Table"],["va-tag-status","Tag, status"],["va-telephone","Telephone"],["va-text-input","Text input"],["va-textarea","Textarea"]];
@@ -1966,7 +2001,7 @@ const PT_PREFILLABLE=["Name","Date of birth","Address","Phone number","Email add
 const PT_WHO_ORDER=["Backend","Engineering","Design","Design system","Research"];
 
 const PT=(function(){
-  const d={type:"form",name:"",team:"",creator:"",viewport:"mobile",problem:"",research:"",figma:"",url:"",
+  const d={type:"page",name:"",team:"",creator:"",viewport:"mobile",problem:"",research:"",figma:"",url:"",
     pages:[],deps:{},qs:{},manual:[],mode:"review",snap:"",mobile:true};
   try{const raw=localStorage.getItem(PT_KEY);if(raw){const o=JSON.parse(raw);if(o&&typeof o==="object")Object.assign(d,o)}}catch(e){}
   if(!Array.isArray(d.pages))d.pages=[];
@@ -2193,6 +2228,7 @@ function ptRenderSide(){
     })),
     fel("p",{class:"gfoot",text:"This picks the page shell. Form flows get the minimal header. Other pages get the full VA.gov header, breadcrumbs and footer."}));
   side.append(typeGroup);
+  side.append(ptTemplateGroup());
 
   const vp=sl([["mobile","Mobile, 320px"],["desktop","Desktop, 1024px"],["both","Both, mobile first"]],PT.viewport,v=>{PT.viewport=v;ptSave();ptRenderMain()},"pt-viewport");
   side.append(fel("div",{class:"group"},
@@ -3276,7 +3312,7 @@ const fmtD=t=>t?new Date(t).toLocaleDateString(undefined,{month:"short",day:"num
 const fmtDT=t=>t?new Date(t).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"";
 const hq=s=>{let h=5381;s=String(s||"").trim().replace(/\s+/g," ").toLowerCase();for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return "q"+(h>>>0).toString(36)};
 const NEED="[NEEDS INPUT]";
-const PT_DEF={type:"form",name:"",team:"",creator:"",viewport:"mobile",problem:"",research:"",figma:"",url:"",pages:[],deps:{},qs:{},manual:[],mode:"review",snap:"",mobile:true};
+const PT_DEF={type:"page",name:"",team:"",creator:"",viewport:"mobile",problem:"",research:"",figma:"",url:"",pages:[],deps:{},qs:{},manual:[],mode:"review",snap:"",mobile:true};
 const MAXDOC=250000;
 
 const CS={library:[],ptab:"pages",on:false,ready:false,role:LS("cs-role")==="engineer"?"engineer":"designer",studies:[],versions:[],reviews:[],notes:[],sessions:[],
@@ -3309,7 +3345,7 @@ function setPT(src){Object.keys(PT).forEach(k=>delete PT[k]);Object.assign(PT,cl
 function applyDesign(json){
   let o=null;try{o=json?JSON.parse(json):null}catch(e){o=null}
   setPT(o&&o.pt);
-  FS.m=o&&o.fm&&Array.isArray(o.fm.chapters)&&o.fm.chapters.length?o.fm:exampleForm();
+  FS.m=o&&o.fm&&Array.isArray(o.fm.chapters)&&o.fm.chapters.length?o.fm:blankForm();
   FS.ans=(o&&o.fa)||{};FS.sel="intro";FS.step="intro";FS.hist=[];
   try{$("#f-undo").disabled=true}catch(e){}
   _ptSave();try{localStorage.setItem(DRAFT_KEY,JSON.stringify({m:FS.m,ans:FS.ans}))}catch(e){}
@@ -4134,6 +4170,15 @@ function newPage(title){
   const p={id:pid("pg"),title:title||"New page",blocks:[{id:pid("b"),kind:"text",name:"Page heading",html:"<h1>"+rx(title||"New page")+"</h1>",space:0}]};
   pages().push(p);PG.page=p.id;PG.sel=p.blocks[0].id;commit();
 }
+window.__applyPageTemplate=function(t){
+  if(PT.type==="form"||PT.type==="subtask")PT.type="mix"; /* same rule as Add page: composed pages need a type that includes them */
+  const p={id:pid("pg"),title:t.name,blocks:[{id:pid("b"),kind:"text",name:"Page heading",html:"<h1>"+rx(t.name)+"</h1>",space:0}]};
+  const STARTER={"va-tag-status":'<va-tag-status status="info" text="In progress"></va-tag-status>',"va-checkbox-group":'<va-checkbox-group label="Choose all that apply" hint="Select every option you want."><va-checkbox label="Email" value="email"></va-checkbox><va-checkbox label="Text message" value="text"></va-checkbox><va-checkbox label="Mail" value="mail"></va-checkbox></va-checkbox-group>'};
+  t.blocks.forEach(([tag,name],i)=>{const b=normBlock({id:pid("b"),tag,what:name,kind:"vads"},i+1);if(STARTER[tag]&&b.html==="<"+tag+"></"+tag+">")b.html=STARTER[tag];p.blocks.push(b)});
+  pages().push(p);PG.page=p.id;PG.sel=p.blocks[0].id;
+  ptSave();ptRender();renderPages();toast("Added the "+t.name+" page. Change, reorder or remove its components.");
+};
+window.__palette=palette;
 function addBlock(src,at){
   const p=curPage();if(!p){newPage("New page");return addBlock(src,at)}
   const s=stripMargins(clean(src.html));
@@ -4229,7 +4274,9 @@ function mountAll(hosts,tok){
 function renderCenter(){
   const c=$("#cs-pc");if(!c)return;const p=curPage();
   c.innerHTML="";
-  if(!p){c.append(fel("section",{class:"rcard"},fel("h3",{class:"rh",text:"No composed pages yet"}),fel("div",{class:"rb"},fel("p",{class:"rnote",style:"padding:0 0 10px",text:"Add a page, then drag in what you saved from Components and Forms, plus VADS page template items such as summary box and pagination."}),fel("button",{class:"btn small",type:"button","data-act":"newpage",text:"Add page"}))));return}
+  if(!p){c.append(fel("section",{class:"rcard"},fel("h3",{class:"rh",text:"No composed pages yet"}),fel("div",{class:"rb"},fel("p",{class:"rnote",style:"padding:0 0 10px",text:"Add a page, then drag in what you saved from Components and Forms, plus VADS page template items such as summary box and pagination."}),fel("button",{class:"btn small",type:"button","data-act":"newpage",text:"Add page"}),
+    fel("p",{class:"rnote",style:"padding:14px 0 8px",text:"Or start from a template. Each adds a page with its components in order."}),
+    fel("div",{class:"rlinks",style:"margin:0"},PT_PAGE_TEMPLATES.map(t=>{const b=fel("button",{class:"tool",type:"button",title:t.desc,text:t.name});b.onclick=()=>ptApplyPageTemplate(t);return b})))));return}
   const title=fel("input",{type:"text",id:"cs-ptitle",value:p.title||"","aria-label":"Page name"});
   c.append(fel("div",{class:"cs-phead"},title,
     fel("div",{class:"seg",role:"group","aria-label":"Preview width"},fel("button",{type:"button","data-w":"d","aria-pressed":String(!PG.mobile),text:"Desktop"}),fel("button",{type:"button","data-w":"m","aria-pressed":String(PG.mobile),text:"Phone"})),
