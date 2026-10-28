@@ -4235,9 +4235,8 @@ function libRows(){
 }
 function renderLeft(){
   const el=$("#cs-pl");if(!el)return;
-  const ps=pages(),fp=ptUsesForm()?ptFormPages():[];
+  const ps=pages();
   let h='<div class="group"><p class="ghead">Pages in this prototype</p><div class="inset">';
-  if(fp.length)h+='<button class="rrow" type="button" data-goforms="1"><span class="rt"><span class="rn">Form: '+rx(FS.m.title||"Untitled form")+'</span><span class="rm">'+fp.length+' pages · edit in Forms</span></span></button>';
   h+=ps.map(p=>{const n=checks(p).filter(x=>x.k==="warn").length;return '<button class="rrow" type="button" data-page="'+rx(p.id)+'" aria-current="'+(p.id===PG.page)+'"><span class="rt"><span class="rn">'+rx(p.title||"Untitled page")+'</span><span class="rm">'+p.blocks.length+' block'+(p.blocks.length===1?"":"s")+'</span></span><span class="pt-flag'+(n?" cs-warn":" ok")+'">'+(n?n+" to fix":"OK")+'</span></button>'}).join("");
   h+='<div class="cell"><button class="tool" type="button" data-act="newpage">Add page</button></div></div><p class="gfoot">Composed pages use the kit’s default page template, so the header, breadcrumbs and footer are fixed.</p></div>';
   h+='<div class="group"><p class="ghead">Add to this page</p><div class="seg" role="group" aria-label="Library" style="display:grid;grid-template-columns:1fr 1fr"><button type="button" data-seg="study" aria-pressed="'+(PG.seg==="study")+'">This study</button><button type="button" data-seg="vads" aria-pressed="'+(PG.seg==="vads")+'">VADS</button></div><div class="inset cs-plib" id="cs-plib">'+libRows()+'</div><p class="gfoot">Drag onto the page, or choose Add to place it after the selected block.</p></div>';
