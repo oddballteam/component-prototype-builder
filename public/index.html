@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Component Builder Prototype</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<nav class="navbar" aria-label="Component Builder">
+  <div class="in">
+    <span class="nav-title">Component Builder</span>
+    <div class="seg" role="tablist" aria-label="View">
+      <button role="tab" hidden id="tab-study" aria-selected="false" aria-controls="view-study">Study</button>
+      <button role="tab" id="tab-pages" aria-selected="true" aria-controls="view-pages">Pages</button>
+      <button role="tab" hidden id="tab-build" aria-selected="false" aria-controls="view-build">Components</button>
+      <button role="tab" hidden id="tab-forms" aria-selected="false" aria-controls="view-forms">Forms</button>
+      <button role="tab" id="tab-proto" aria-selected="false" aria-controls="view-proto">Review and export</button>
+      <button role="tab" hidden id="tab-research" aria-selected="false" aria-controls="view-research">Research</button>
+      <button role="tab" hidden id="tab-testing" aria-selected="false" aria-controls="view-testing">Testing</button>
+      <button role="tab" hidden id="tab-ref" aria-selected="false" aria-controls="view-ref">Reference</button>
+      <button role="tab" hidden id="tab-rec" aria-selected="false" aria-controls="view-rec">Records</button>
+      <button role="tab" hidden id="tab-comm" aria-selected="false" aria-controls="view-comm">Community<span class="count" id="comm-count">3</span></button>
+    </div>
+    <div class="cs-navr"><div class="seg cs-role" role="group" aria-label="View as" id="cs-role"><button type="button" data-role="designer" aria-pressed="true">Designer</button><button type="button" data-role="engineer" aria-pressed="false">Engineer</button></div></div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <header class="large">
+    <h1 id="h-title">Component Builder</h1>
+    <p id="h-sub">Describe a VA.gov component. The agent builds it from VA Design System components only and checks the result against VADS.</p>
+  </header>
+  <div class="seg cs-psub" id="cs-psub" role="tablist" aria-label="Pages" hidden><button type="button" role="tab" data-pt="pages">Compose</button><button type="button" role="tab" data-pt="build">Components</button><button type="button" role="tab" data-pt="forms">Forms</button><button type="button" role="tab" data-pt="ref">Reference</button></div>
+  <div class="pt-subtabs-top" id="pt-subnav" hidden>
+    <div class="seg pt-subtabs" id="pt-secnav" role="tablist" aria-label="Review sections" hidden></div>
+  </div>
+
+  <section id="view-study" role="tabpanel" aria-labelledby="tab-study" class="build" hidden>
+    <aside class="side" id="cs-sside" aria-label="Studies"></aside>
+    <div class="bench" id="cs-smain"></div>
+  </section>
+
+  <section id="view-research" role="tabpanel" aria-labelledby="tab-research" hidden>
+    <div id="cs-rgate"></div>
+    <div class="cs-ra"><iframe id="cs-ra" title="Research steps: prior research, plan, guide, findings, report and repo"></iframe></div>
+  </section>
+
+  <section id="view-pages" role="tabpanel" aria-labelledby="tab-proto" class="cs-comp" hidden>
+    <aside class="side" id="cs-pl" aria-label="Pages and library"></aside>
+    <div class="cs-pcw" id="cs-pc"></div>
+    <aside class="side" id="cs-pi" aria-label="Block settings and checks"></aside>
+  </section>
+
+  <section id="view-testing" role="tabpanel" aria-labelledby="tab-testing" class="build" hidden>
+    <aside class="side" id="cs-tside" aria-label="Sessions"></aside>
+    <div class="bench" id="cs-tmain"></div>
+  </section>
+
+  <section id="view-build" role="tabpanel" aria-labelledby="tab-build" class="build" hidden>
+    <aside class="side">
+      <div class="group">
+        <label class="ghead" for="prompt">Describe a component</label>
+        <div class="inset">
+          <textarea id="prompt" placeholder="A card that shows a Veteran their claim status, with a progress bar and a link to claim details."></textarea>
+        </div>
+        <p class="gfoot">Say what a Veteran sees and does. One prompt is enough. The agent builds it from VADS components only.</p>
+      </div>
+
+      <div class="group">
+        <p class="ghead" id="starters-h">Starters</p>
+        <div class="chips" role="group" aria-labelledby="starters-h">
+          <button class="chip" data-p="A claim status card with a segmented progress bar showing the current step and a link to claim details.">Claim status</button>
+          <button class="chip" data-p="An upcoming appointment card with the date, time and location, and a Check in button that shows a success alert.">Appointment check-in</button>
+          <button class="chip" data-p="A document upload field for a DD214 with a success state that shows the file name and a Remove link.">Document upload</button>
+          <button class="chip" data-p="A form step footer with Back and Continue buttons, and a 'We saved your progress' alert that appears after Continue.">Save in progress</button>
+          <button class="chip" data-p="A benefits eligibility result: an accordion of three benefits the Veteran may qualify for, each with a short description and an Apply link.">Eligibility results</button>
+        </div>
+      </div>
+
+      <div class="stack">
+        <button class="btn" id="gen" disabled>Generate</button>
+        <button class="btn plain" id="stop" hidden>Stop</button>
+        <p class="status" id="status" role="status" aria-live="polite">Connecting to Claude…</p>
+      </div>
+
+      <div class="group">
+        <label class="ghead" for="refine">Refine this component</label>
+        <div class="inset">
+          <div class="refine-row">
+            <input id="refine" type="text" placeholder="Use a summary box instead of a card">
+            <button class="btn small" id="refine-go" disabled>Apply</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <p class="ghead">Accessibility notes</p>
+        <div class="inset"><ul class="notes" id="a11y"></ul></div>
+      </div>
+    </aside>
+
+    <div class="bench">
+      <div class="titlebar">
+        <div style="min-width:0">
+          <h2 id="c-title">Claim status card</h2>
+          <p class="sum" id="c-sum"></p>
+        </div>
+        <div class="actions" role="group" aria-label="Preview controls">
+          <button class="tool" id="t-spec" aria-pressed="false">Spec view</button>
+          <button class="tool" id="t-real" aria-pressed="true" title="Draw the production code with the real VA web components, as the Compose tab does">Real components</button>
+          <button class="tool" id="t-mobile" aria-pressed="false">iPhone width</button>
+          <button class="tool" id="cs-libsave" type="button">Save to study library</button>
+          <button class="tool" id="share" hidden>Share to community</button>
+        </div>
+      </div>
+
+      <div class="canvas">
+        <div class="frame" id="frame-wrap">
+          <span class="dims" id="dims">— × —</span>
+          <span class="h tl"></span><span class="h tr"></span><span class="h bl"></span><span class="h br"></span>
+          <div class="live" id="live-host" hidden></div>
+          <iframe id="frame" title="Component preview" sandbox="allow-scripts" hidden></iframe>
+        </div>
+        <div class="loading-veil" id="veil" hidden><div class="hud"><span class="spin" aria-hidden="true"></span>Composing from VADS…</div></div>
+      </div>
+      <p class="prev-note" id="prev-note"></p>
+
+      <div class="code">
+        <div class="code-tabs">
+          <div class="seg" role="tablist" aria-label="Output">
+            <button role="tab" aria-selected="true" data-tab="prod" id="ct-prod">Production</button>
+            <button role="tab" aria-selected="false" data-tab="check" id="ct-check">VADS check</button>
+            <button role="tab" aria-selected="false" data-tab="src" id="ct-src">Preview source</button>
+          </div>
+          <button class="tool" id="copy">Copy</button>
+        </div>
+        <div class="code-body" id="code-body"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-forms" role="tabpanel" aria-labelledby="tab-forms" class="build" hidden>
+    <aside class="side fm-side">
+      <div class="group">
+        <label class="ghead" for="fprompt">Describe a form</label>
+        <div class="inset">
+          <textarea id="fprompt" placeholder="A form for Veterans to request a copy of their service records, including which records they need and why."></textarea>
+        </div>
+        <p class="gfoot">Say who fills it out and what you need to know. One prompt is enough. You can edit every page afterward.</p>
+      </div>
+
+      <div class="group">
+        <p class="ghead" id="fstarters-h">Starters</p>
+        <div class="chips" role="group" aria-labelledby="fstarters-h">
+          <button class="chip" data-fp="A form for Veterans to request a copy of their military service records. Ask which records they need and, only if they have a specific reason, why.">Service records</button>
+          <button class="chip" data-fp="A form to add or remove dependents on a Veteran's benefits. Use a list and loop so they can add several dependents, each with name, date of birth, and relationship.">Add dependents</button>
+          <button class="chip" data-fp="A travel reimbursement request for a VA health care appointment: date of the trip, how they traveled, mileage or cost, and a receipt upload when they paid for something other than driving.">Travel reimbursement</button>
+          <button class="chip" data-fp="A statement in support of a claim: who is writing it, how they know the Veteran, a long text statement, and a date. Keep it short and calm.">Supporting statement</button>
+        </div>
+      </div>
+
+      <div class="stack">
+        <button class="btn" id="fgen" disabled>Generate form</button>
+        <button class="btn plain" id="fstop" hidden>Stop</button>
+        <p class="status" id="fstatus" role="status" aria-live="polite">Connecting to Claude…</p>
+      </div>
+
+      <div class="group">
+        <label class="ghead" for="frefine">Refine with a prompt</label>
+        <div class="inset">
+          <div class="refine-row">
+            <input id="frefine" type="text" placeholder="Split the address into its own step">
+            <button class="btn small" id="frefine-go" disabled>Apply</button>
+          </div>
+        </div>
+        <p class="gfoot">Or edit the pages and fields yourself in the outline below.</p>
+      </div>
+
+      <div class="group">
+        <p class="ghead">Outline</p>
+        <div class="inset" id="outline"></div>
+      </div>
+
+      <div class="group">
+        <p class="ghead">Checks</p>
+        <div class="inset"><ul class="notes lintlist" id="flint"></ul></div>
+      </div>
+    </aside>
+
+    <div class="bench">
+      <div class="titlebar">
+        <div style="min-width:0">
+          <h2 id="f-title">Form</h2>
+          <p class="sum" id="f-sum"></p>
+        </div>
+        <div class="actions" role="group" aria-label="Form preview controls">
+          <button class="tool" id="f-undo" disabled>Undo</button>
+          <button class="tool" id="f-restart">Restart</button>
+          <button class="tool" id="f-mobile" aria-pressed="false">iPhone width</button>
+          <button class="tool" id="f-example">Load example</button>
+          <button class="tool" id="f-libsave" type="button">Save to study library</button>
+        </div>
+      </div>
+
+      <div class="canvas">
+        <div class="frame" id="f-wrap">
+          <span class="dims" id="f-dims">— × —</span>
+          <div id="f-host" role="region" aria-label="Form preview"></div>
+        </div>
+        <div class="loading-veil" id="f-veil" hidden><div class="hud"><span class="spin" aria-hidden="true"></span>Building your form…</div></div>
+      </div>
+      <p class="f-note">The preview is a working stand-in for the VA form flow: click through the steps. Answers you type are used for the review page and for conditional pages. Nothing is saved or sent.</p>
+
+      <div class="ins" id="inspector" aria-live="off"></div>
+
+      <div class="code">
+        <div class="code-tabs">
+          <div class="seg" role="tablist" aria-label="Form output">
+            <button role="tab" aria-selected="true" data-ftab="json" id="fct-json">Form JSON</button>
+            <button role="tab" aria-selected="false" data-ftab="code" id="fct-code">Page code</button>
+          </div>
+          <button class="tool" id="fcopy">Copy</button>
+        </div>
+        <div class="code-body" id="fcode-body"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-proto" role="tabpanel" aria-labelledby="tab-proto" class="build" hidden>
+    <aside class="side" id="pt-side" aria-label="Prototype setup"></aside>
+
+    <div class="bench">
+      <div class="titlebar">
+        <div style="min-width:0">
+          <h2 id="pt-title">Prototype</h2>
+          <p class="sum" id="pt-sum"></p>
+        </div>
+        <div class="actions" role="group" aria-label="Bundle actions">
+          <span id="cs-vstat" class="pt-flag" hidden></span>
+          <button class="tool" id="cs-submit" type="button">Send for engineer review</button>
+          <button class="tool" id="pt-zip" type="button">Download bundle</button>
+          <button class="tool" id="pt-figpush" type="button" title="Send the pages to the Figma file in the Figma link field. Without Figma connected, this downloads an SVG to import.">Send to Figma</button>
+          <button class="tool" id="pt-copyprompt" type="button">Copy Claude Code prompt</button>
+        </div>
+      </div>
+
+      <div class="cs-pop" id="cs-subpop" hidden>
+        <div class="fi"><label for="cs-subnote">Note for engineering (optional)</label><textarea id="cs-subnote" rows="3" placeholder="Ready for testing. Check the address prefill."></textarea><p class="fhint">This saves the prototype exactly as it is now. Engineering checks it for feasibility before you write the plan. Keep editing afterward: later changes become the next version.</p></div>
+        <div class="fi"><div class="rlinks" style="margin:0"><button class="btn small" id="cs-subsend" type="button">Send this version</button><button class="tool" id="cs-subcancel" type="button">Cancel</button></div></div>
+      </div>
+
+
+      <div id="pt-main" class="pt-files"></div>
+    </div>
+  </section>
+
+  <section id="view-ref" role="tabpanel" aria-labelledby="tab-ref" class="build" hidden>
+    <aside class="side">
+      <div class="group">
+        <p class="ghead" id="r-mode-h">Browse by</p>
+        <div class="seg" role="group" aria-labelledby="r-mode-h" id="r-mode">
+          <button data-rm="comp" aria-pressed="true">Components</button>
+          <button data-rm="prod" aria-pressed="false">Products</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <p class="ghead" id="r-list-h">Most used on VA.gov</p>
+        <div class="inset">
+          <div class="r-search" id="r-search" hidden><input id="r-q" type="search" placeholder="Search products" aria-label="Search products"></div>
+          <div id="r-list" role="group" aria-labelledby="r-list-h"></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <p class="ghead">About these numbers</p>
+        <p class="gfoot" id="r-asof"></p>
+      </div>
+    </aside>
+
+    <div class="bench" id="r-main" tabindex="-1"></div>
+  </section>
+
+  <section id="view-rec" role="tabpanel" aria-labelledby="tab-rec" class="build" hidden>
+    <aside class="side">
+      <div class="group">
+        <p class="ghead" id="rc-mode-h">View</p>
+        <div class="seg" role="group" aria-labelledby="rc-mode-h" id="rc-mode">
+          <button data-rcm="design" aria-pressed="true">Designer</button>
+          <button data-rcm="gov" aria-pressed="false">Governance</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <p class="ghead">Describe the need</p>
+        <div class="inset">
+          <div class="fi"><label for="rc-prompt">What does the Veteran need to do or understand?</label>
+            <textarea id="rc-prompt" placeholder="Example: A caregiver wants to see every change to a claim, by date."></textarea></div>
+          <div class="fi"><div class="rlinks" style="margin:0">
+            <button class="tool" id="rc-gen">Check this need</button>
+            <button class="tool" id="rc-stop" hidden>Stop</button></div></div>
+        </div>
+        <p class="status" id="rc-status" role="status" style="padding:8px 4px 0"></p>
+      </div>
+
+      <div class="group">
+        <p class="ghead">Starters</p>
+        <div class="inset">
+          <div class="cell"><button class="tool" data-rcp="A Veteran wants to see where their claim stands and what happens next.">Claim status summary</button></div>
+          <div class="cell"><button class="tool" data-rcp="A caregiver wants to compare several claims at a glance, each with a status and progress.">Compare several claims</button></div>
+          <div class="cell"><button class="tool" data-rcp="A Veteran wants to choose how VA contacts them, and confirm the choice.">Choose contact method</button></div>
+        </div>
+      </div>
+
+      <div class="group">
+        <p class="ghead">What the check uses</p>
+        <ul class="gfoot" id="rc-reg" style="margin:0;padding-left:18px;display:grid;gap:4px"></ul>
+        <p class="gfoot" style="margin-top:8px">The registry is the component list inside this page. It is not yet connected to the live design system.</p>
+      </div>
+    </aside>
+
+    <div class="bench" tabindex="-1" style="gap:16px">
+      <div class="rtabs">
+        <div style="min-width:0;flex:1 1 260px"><h2 id="rc-title" style="margin:0;font-size:20px;font-weight:600">Records</h2><p class="rnote" id="rc-sum" style="padding:4px 0 0"></p></div>
+        <div class="rlinks" style="margin:0"><button class="tool" id="rc-copy" disabled>Copy record JSON</button><button class="tool" id="rc-save" disabled>Save records</button></div>
+      </div>
+      <div id="rc-main" style="display:grid;gap:16px;align-content:start;min-width:0"></div>
+    </div>
+  </section>
+
+  <section id="view-comm" role="tabpanel" aria-labelledby="tab-comm" class="community" hidden>
+    <div>
+      <h2>Community</h2>
+      <p class="lead">Components your team generated and shared. Open one to replay it, read its motion spec, or refine it into something new.</p>
+    </div>
+    <p class="sub">Shared by your team</p>
+    <div id="shared-grid" class="grid"></div>
+    <p class="sub">Starter examples</p>
+    <div id="ex-grid" class="grid"></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+<div id="cs-scrim" hidden></div>
+<div class="cs-modal" id="cs-lib-modal" role="dialog" aria-modal="true" aria-labelledby="cs-lib-h" hidden>
+  <h2 id="cs-lib-h">Save to study library</h2>
+  <div class="inset" id="cs-lib-body"></div>
+  <div class="rlinks" style="margin:0"><button class="btn small" type="button" id="cs-lib-save">Save to library</button><button class="tool" type="button" id="cs-lib-cancel">Cancel</button></div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="claude-shim.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
