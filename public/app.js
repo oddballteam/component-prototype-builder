@@ -289,6 +289,23 @@ PRODUCTION RULES: Only tags and attributes from the component list, vads-u-* uti
 function VADS_PROMPT(){return VADS_KNOWLEDGE.split("\n").filter(l=>/^(RULE|PRODUCTION COMPONENTS|ACCESSIBILITY|CONTENT|VADS ALIGNMENT|VA DESIGN SYSTEM)/.test(l)).join("\n")+"\n\nCOMPONENT LIST (web-components "+VADS_SPEC_VER+", the version the preview runs):\n"+specList()}
 /* ---------- render-repo snapshot (va-uswds-render entries, tokens, templates) ---------- */
 let SNAP=null;
+/* Storybook states for every component, from public/va-stories.json (built by scripts/build-stories.mjs) */
+let VST=null;
+const VSTP=fetch("va-stories.json").then(r=>r.ok?r.json():null).then(j=>{
+  if(!j||!Array.isArray(j.stories))return;
+  VST={};j.stories.forEach(x=>{if(x.component)(VST[x.component]=VST[x.component]||[]).push({n:x.name,h:x.html})});
+  try{if(typeof renderVariants==="function")renderVariants()}catch(e){}
+}).catch(()=>null);
+function stateList(tag){
+  if(VST&&VST[tag]&&VST[tag].length)return VST[tag];
+  const c=typeof REF_COMPS!=="undefined"&&REF_COMPS.find(x=>x.tag===tag);
+  return c?c.stories.map(x=>({n:x.n,h:x.h})):[];
+}
+function storybookExamples(){
+  if(!VST)return "";
+  const L=Object.keys(VST).sort().map(t=>{const d=VST[t].find(x=>/^default$/i.test(x.n))||VST[t][0];return d.h.length>420?null:t+": "+d.h}).filter(Boolean);
+  return L.length?"STORYBOOK EXAMPLES (the design system's own Default story for each component. Use the same attribute names and structure, and change only the content and the options the request needs):\n"+L.join("\n"):"";
+}
 const SNAPP=fetch("va-render-snapshot.json").then(r=>r.ok?r.json():null).then(j=>{SNAP=j&&Array.isArray(j.entries)?j:null;snapReady()}).catch(()=>null);
 function snapKeys(){return SNAP?new Set(SNAP.entries.concat(SNAP.primitives||[]).map(e=>e.key)):null}
 function snapReady(){
@@ -326,6 +343,7 @@ function checkSpec(sp){
 function buildPrompt(text, base){
   let p = "You are the VADS Component Builder agent. You build VA.gov UI components that stay aligned to the VA Design System, strictly following the VA Design System reference below.\n\n" + VADS_PROMPT() + "\n\n" + OUTPUT_SPEC + "\n\n";
   const rr=renderRepoPrompt();if(rr)p+=rr+"\n\n";
+  const sbx=storybookExamples();if(sbx)p+=sbx+"\n\n";
   if(base){
     const slim = {title:base.title,summary:base.summary,components:base.components,preview:base.preview,production:base.production,spec:base.spec||undefined,custom:base.custom||[],a11y:base.a11y};
     p += "CURRENT COMPONENT (JSON):\n" + JSON.stringify(slim) + "\n\nCHANGE REQUEST: " + text + "\nApply the change and return the complete updated component in the same JSON shape.";
@@ -469,7 +487,7 @@ function renderCode(){
 /* ---------- Variations: the component's own options, drawn live ----------
    Controls come from VADS_SPEC (the real prop list and allowed values). Changing one edits a working copy of the
    production markup and redraws the real components. "Apply to my code" writes the working copy back. */
-const VAR_BOOLS=new Set(["secondary","big","small","disabled","full-width","slim","closeable","bordered","open","open-single","required","tile","striped","stacked","sortable","scrollable","inline","back","continue","primary-alternate","loading","iconless","active","checked","indeterminate","show-shadow","disable-border","use-forms-pattern","header-sr-only","label-sr-only","month-optional","month-year-only"]);
+const VAR_BOOLS=new Set(["secondary","big","small","disabled","full-width","slim","closeable","bordered","open","open-single","required","tile","striped","stacked","sortable","scrollable","inline","back","continue","primary-alternate","loading","iconless","active","checked","indeterminate","show-shadow","disable-border","use-forms-pattern","header-sr-only","label-sr-only","month-optional","month-year-only","centered-labels","use-div"]);
 let PV={base:null,html:null,tpl:null,ref:null,changed:false};
 const prodHtml=()=>PV.base===current.production&&PV.html!=null?PV.html:String(current.production||"");
 function pvSerialize(){
@@ -508,14 +526,17 @@ function renderVariants(){
     const name=el.getAttribute("text")||el.getAttribute("label")||el.getAttribute("header")||el.getAttribute("heading-text")||"";
     groups.push(vEl("fieldset",{class:"pv-g"},vEl("legend",{},vEl("code",{text:el.localName}),name?document.createTextNode(" "+name.slice(0,40)):null),...ctl.slice(0,8)));
   });
-  const comp=els.map(e=>REF_COMPS.find(c=>c.tag===e.localName)).find(c=>c&&c.stories.length>1);
-  const chips=comp?comp.stories.map(st=>{
-    const b=vEl("button",{type:"button",class:"tool pv-chip","aria-pressed":String(PV.ref===st.n),text:st.n});
-    b.onclick=()=>{PV.ref=PV.ref===st.n?null:st.n;PV.html=PV.ref?st.h:(PV.changed?pvSerialize():null);renderStage();renderVariants()};
-    return b}):[];
+  const tags=[...new Set(els.map(e=>e.localName))].map(t=>({tag:t,list:stateList(t)})).filter(x=>x.list.length>1).slice(0,4);
+  const chips=tags.map(pick=>vEl("div",{class:"pv-ref",role:"group","aria-label":"Storybook states for "+pick.tag},
+    vEl("span",{class:"rnote",style:"padding:0",text:pick.tag+" Storybook states"}),
+    ...pick.list.map(st=>{
+      const key=pick.tag+":"+st.n;
+      const b=vEl("button",{type:"button",class:"tool pv-chip","aria-pressed":String(PV.ref===key),text:st.n});
+      b.onclick=()=>{PV.ref=PV.ref===key?null:key;PV.html=PV.ref?st.h:(PV.changed?pvSerialize():null);renderStage();renderVariants()};
+      return b})));
   if(!groups.length&&!chips.length){host.hidden=true;return}
   host.hidden=false;
-  const head=vEl("div",{class:"pv-h"},vEl("h3",{text:"Variations"}),vEl("p",{class:"rnote",style:"padding:0",text:PV.ref?"Showing the reference state “"+PV.ref+"”. Reset to go back to your code.":"Change an option to see the real component redraw. Apply writes it to your production code."}));
+  const head=vEl("div",{class:"pv-h"},vEl("h3",{text:"Variations"}),vEl("p",{class:"rnote",style:"padding:0",text:PV.ref?"Showing the Storybook state “"+PV.ref.split(":").slice(1).join(":")+"”. Reset to go back to your code.":"Change an option to see the real component redraw. Apply writes it to your production code."}));
   const apply=vEl("button",{type:"button",class:"btn small",text:"Apply to my code"});
   apply.disabled=!PV.changed||!!PV.ref;
   apply.onclick=()=>{current.production=pvSerialize();PV={base:current.production,html:null,tpl:null,ref:null,changed:false};renderCode();renderStage();renderVariants();stageNote("Applied. The production code now includes your options.")};
@@ -524,7 +545,7 @@ function renderVariants(){
   reset.onclick=()=>{PV={base:current.production,html:null,tpl:null,ref:null,changed:false};renderStage();renderVariants()};
   host.append(head);
   if(groups.length)host.append(vEl("div",{class:"pv-gs"},...groups));
-  if(chips.length)host.append(vEl("div",{class:"pv-ref",role:"group","aria-label":"Reference states for "+comp.name},vEl("span",{class:"rnote",style:"padding:0",text:comp.name+" reference states"}),...chips));
+  chips.forEach(c=>host.append(c));
   host.append(vEl("div",{class:"rlinks"},apply,reset));
 }
 function pvChange(){PV.changed=true;PV.ref=null;PV.html=pvSerialize();renderStage();const a=document.querySelector("#variants .btn"),r=document.querySelector("#variants .rlinks .tool");if(a)a.disabled=false;if(r)r.disabled=false;document.querySelectorAll("#variants .pv-chip").forEach(b=>b.setAttribute("aria-pressed","false"))}

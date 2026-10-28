@@ -75,3 +75,15 @@ Step by step: see "Component Builder: First Deploy Steps". In short: import the 
 - The Anthropic key lives only in Vercel environment variables as `ANTHROPIC_API_KEY`, and only `api/sample.js` reads it.
 - Never put it in a file in this repo or in `public/`. `.env*` is git-ignored; `.env.example` is the template.
 - A test fails the build if a key-shaped string appears in the repo.
+
+## Storybook states
+
+`public/va-stories.json` holds the markup of every Storybook story in the VA component library (the states shown under Variations, and the examples added to the generation prompt). Regenerate it when the component library changes:
+
+```bash
+node scripts/build-stories.mjs --stories <component-library>/packages/storybook/stories \
+  --docs <component-library>/packages/web-components/component-docs.json \
+  --typescript <path to typescript.js>
+```
+
+`--docs` is optional when the component library has been built. The npm package `@department-of-veterans-affairs/web-components` also includes a `component-docs.json`. Stories that need a browser (for example `va-button-sign-in`) are listed under `skipped` in the output file.
