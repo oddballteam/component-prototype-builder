@@ -294,6 +294,7 @@ let VST=null;
 const VSTP=fetch("va-stories.json").then(r=>r.ok?r.json():null).then(j=>{
   if(!j||!Array.isArray(j.stories))return;
   VST={};j.stories.forEach(x=>{if(x.component)(VST[x.component]=VST[x.component]||[]).push({n:x.name,h:x.html})});
+  window.VSTDATA={states:VST,names:j.names||{}};try{dispatchEvent(new Event("vst-ready"))}catch(e){}
   try{if(typeof renderVariants==="function")renderVariants()}catch(e){}
 }).catch(()=>null);
 function stateList(tag){
@@ -4214,7 +4215,21 @@ const EXTRA=[
   {key:"nav",name:"Back and Continue",kind:"vads",grp:"Page template",html:'<va-button-pair left-button-text="Back" right-button-text="Continue" continue></va-button-pair>'},
   {key:"file",name:"File input",kind:"vads",grp:"Components",html:'<va-file-input label="Upload your document" hint="PDF, JPG or PNG, up to 50 MB" accept=".pdf,.jpg,.png"></va-file-input>'},
   {key:"card",name:"Card",kind:"vads",grp:"Components",html:"<va-card><h3>Card heading</h3><p>Short supporting text.</p></va-card>"}];
-function palette(){return EXTRA.concat(REF_COMPS.map(c=>({key:"ref:"+c.id,name:c.name,kind:"vads",html:c.stories[0].h,grp:"Components",note:c.notice||""})))}
+/* Page shell parts and components that are never customised are not offered as page blocks */
+const PAL_SKIP=new Set(["va-header-minimal","va-header-navigation","va-minimal-footer","va-official-gov-banner","va-crisis-line-modal","va-back-to-top","va-content-page"]);
+function paletteMore(have){
+  const D=window.VSTDATA;if(!D)return [];
+  return Object.keys(D.states).filter(t=>!have.has(t)&&!PAL_SKIP.has(t)&&VADS_SPEC[t]).map(t=>{
+    const st=D.states[t].find(x=>/^default$/i.test(x.n))||D.states[t][0];
+    return {key:"sb:"+t,name:D.names[t]||t.replace(/^va-/,"").replace(/-/g," ").replace(/^./,c=>c.toUpperCase()),kind:"vads",html:st.h,grp:"Components",note:""};
+  }).sort((a,b)=>a.name.localeCompare(b.name));
+}
+function palette(){
+  const base=EXTRA.concat(REF_COMPS.map(c=>({key:"ref:"+c.id,name:c.name,kind:"vads",html:c.stories[0].h,grp:"Components",note:c.notice||""})));
+  const have=new Set(base.map(x=>{const m=/^<([a-z][a-z0-9-]*)/.exec(String(x.html||""));return m?m[1]:""}).concat(REF_COMPS.map(c=>c.tag)));
+  return base.concat(paletteMore(have));
+}
+addEventListener("vst-ready",()=>{try{renderPages()}catch(e){}});
 
 /* ---------- markup helpers ---------- */
 function clean(html){return String(html||"").replace(/<style[\s\S]*?<\/style>/gi,"").replace(/<script[\s\S]*?<\/script>/gi,"").replace(/<!--[\s\S]*?-->/g,"").trim()}

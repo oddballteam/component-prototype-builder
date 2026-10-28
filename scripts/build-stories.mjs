@@ -202,5 +202,7 @@ for (const f of files) {
 const byTag = {};
 stories.forEach(s => { const k = s.component || "other"; byTag[k] = (byTag[k] || 0) + 1; });
 fs.mkdirSync(path.dirname(out), { recursive: true });
-fs.writeFileSync(out, JSON.stringify({ schema: 1, generatedAt: new Date().toISOString(), source: { files: files.length }, counts: byTag, skipped, stories }) + "\n");
+const names = {};
+((loadDocs(dir).components) || []).forEach(c => { const t = (c.docsTags || []).find(x => x.name === "componentName"); if (t && byTag[c.tag]) names[c.tag] = t.text; });
+fs.writeFileSync(out, JSON.stringify({ schema: 1, generatedAt: new Date().toISOString(), source: { files: files.length }, counts: byTag, names, skipped, stories }) + "\n");
 console.log("Wrote " + path.relative(process.cwd(), out) + ": " + stories.length + " stories from " + files.length + " files, " + skipped.length + " skipped.");
