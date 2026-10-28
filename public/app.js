@@ -380,8 +380,9 @@ async function renderStage(){
   stageNote("Loading the real VA web components…");
   const ok=await rLoadLive();
   if(tok!==stageTok)return;
-  if(!ok){if(hasSrc){useStandIn();stageNote("The real components didn’t load here, so this is the stand-in preview.")}else{host.textContent="The real components didn’t load here. The production code is in the tabs below.";stageNote("")}return}
+  if(!ok){if(hasSrc){useStandIn();stageNote("The real VA components couldn’t be loaded from unpkg.com, so this is the stand-in drawing. Check the connection and press Spec view again to retry.")}else{host.textContent="The real components didn’t load here. The production code is in the tabs below.";stageNote("")}return}
   const el=document.createElement("div");host.append(el);rMountPreview(el,String(current.production||""),{spec});
+  setTimeout(()=>{if(tok!==stageTok)return;const r=el.getBoundingClientRect();$("#dims").textContent=Math.round(r.width)+" \u00d7 "+Math.round(r.height)},400);
   stageNote("Drawn with the real VA web components (v"+REF_WC_VER+"), the same as the Compose tab."+(spec?" Spec view adds a grid, outlines and sizes on top of them.":" Fonts and spacing can differ slightly from VA.gov."));
 }
 function renderMeta(){
@@ -479,7 +480,7 @@ function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeou
 
 /* Controls */
 $("#t-spec").onclick=e=>{spec=!spec;e.currentTarget.setAttribute("aria-pressed",spec);renderStage()};
-$("#t-real").onclick=e=>{realPrev=!realPrev;e.currentTarget.setAttribute("aria-pressed",String(realPrev));renderStage()};
+const tReal=$("#t-real");if(tReal)tReal.onclick=e=>{realPrev=!realPrev;e.currentTarget.setAttribute("aria-pressed",String(realPrev));renderStage()};
 $("#t-mobile").onclick=e=>{mobile=!mobile;e.currentTarget.setAttribute("aria-pressed",mobile);$("#frame-wrap").classList.toggle("mobile",mobile);setTimeout(renderStage,320)};
 document.querySelectorAll(".code-tabs [role=tab]").forEach(b=>b.onclick=()=>{codeTab=b.dataset.tab;renderCode()});
 $("#copy").onclick=async()=>{
@@ -1782,11 +1783,11 @@ const R_PREFIX=':host{display:block;font-family:"Public Sans","Helvetica Neue",H
 function rLoadLive(){
   if(rLive)return rLive;
   rLive=new Promise(res=>{
-    const t=setTimeout(()=>res(false),12000);
+    const t=setTimeout(()=>{rLive=null;res(false)},12000);
     try{globalThis.getVaIconSpriteLocation=()=>REF_WC+"dist/img/sprite.svg"}catch(e){}
     import(REF_WC+"dist/component-library/component-library.esm.js")
       .then(()=>customElements.whenDefined("va-alert")).then(()=>{clearTimeout(t);res(true)})
-      .catch(()=>{clearTimeout(t);res(false)});
+      .catch(()=>{clearTimeout(t);rLive=null;res(false)});
   });
   return rLive;
 }
