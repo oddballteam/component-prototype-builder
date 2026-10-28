@@ -381,8 +381,8 @@ async function renderStage(){
   const ok=await rLoadLive();
   if(tok!==stageTok)return;
   if(!ok){if(hasSrc){useStandIn();stageNote("The real components didn’t load here, so this is the stand-in preview.")}else{host.textContent="The real components didn’t load here. The production code is in the tabs below.";stageNote("")}return}
-  const el=document.createElement("div");host.append(el);rMountPreview(el,String(current.production||""));
-  stageNote("Drawn with the real VA web components (v"+REF_WC_VER+"), the same as the Compose tab. Fonts and spacing can differ slightly from VA.gov.");
+  const el=document.createElement("div");host.append(el);rMountPreview(el,String(current.production||""),{spec});
+  stageNote("Drawn with the real VA web components (v"+REF_WC_VER+"), the same as the Compose tab."+(spec?" Spec view adds a grid, outlines and sizes on top of them.":" Fonts and spacing can differ slightly from VA.gov."));
 }
 function renderMeta(){
   $("#c-title").innerHTML="";
@@ -1795,13 +1795,32 @@ function rSheetGet(){
   try{rSheet=new CSSStyleSheet();rSheet.replaceSync(R_PREFIX+REF_CSS+R_FONT)}catch(e){rSheet=null}
   return rSheet;
 }
-function rMountPreview(el,html){
+function rMountPreview(el,html,opts){
   const root=el.attachShadow({mode:"open"});
   const sh=rSheetGet();
   if(sh)root.adoptedStyleSheets=[sh];else{const st=document.createElement("style");st.textContent=R_PREFIX+REF_CSS+R_FONT;root.append(st)}
   const w=document.createElement("div");w.innerHTML=html;root.append(w);
+  if(opts&&opts.spec){
+    /* Spec view: the same real components, with the dot grid, dashed outlines and size labels drawn over them */
+    const st=document.createElement("style");
+    st.textContent=".__w{position:relative;background-color:#fbfcfd;background-image:radial-gradient(rgba(0,94,162,.18) 1px,transparent 1.2px);background-size:12px 12px}.__w *{outline:1px dashed rgba(0,94,162,.55)!important;outline-offset:-1px}.__spec{position:absolute;font:500 10px/1 'Roboto Mono',ui-monospace,monospace;color:#005ea2;background:#fff;padding:2px 4px;pointer-events:none;z-index:99;white-space:nowrap;border:1px solid rgba(0,94,162,.3);outline:0!important}";
+    root.append(st);w.className="__w";
+    const label=()=>{
+      w.querySelectorAll(".__spec").forEach(x=>x.remove());
+      const wr=w.getBoundingClientRect();let n=0;
+      w.querySelectorAll(":scope *").forEach(e=>{
+        if(n>=22||e.classList.contains("__spec"))return;
+        const r=e.getBoundingClientRect();if(r.width<44||r.height<14)return;n++;
+        const l=document.createElement("span");l.className="__spec";l.textContent=Math.round(r.width)+"\u00d7"+Math.round(r.height);
+        l.style.left=(r.left-wr.left)+"px";l.style.top=Math.max(0,r.top-wr.top)+"px";w.append(l);
+      });
+    };
+    setTimeout(label,300);setTimeout(label,1200);
+    try{new ResizeObserver(()=>{clearTimeout(w.__t);w.__t=setTimeout(label,120)}).observe(w)}catch(e){}
+  }
   root.addEventListener("click",e=>{if(e.composedPath().some(n=>n&&n.localName==="a"))e.preventDefault()});
 }
+window.__rMount=rMountPreview; /* test hook */
 async function rMountAll(){
   const tok=++R.tok,note=$("#r-live");
   if(note)note.textContent="Loading the real VA web components…";
