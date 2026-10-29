@@ -34,3 +34,13 @@ test('no secrets in tracked source', () => {
     assert.doesNotMatch(readFileSync(f, 'utf8'), bad, `${f} looks like it holds a secret`);
   }
 });
+
+test('footer holds the "how this tool works" accordion and the header button targets it', () => {
+  assert.match(html, /<footer[^>]*id="site-foot"/);
+  assert.match(html, /id="how-btn"[^>]*aria-expanded="false"[^>]*aria-controls="how-panel"/);
+  assert.match(html, /<div class="how-panel" id="how-panel"[^>]*hidden>/);
+  const nav = html.slice(html.indexOf('<nav'), html.indexOf('</nav>'));
+  assert.match(nav, /id="how-jump"[^>]*href="#how-it-works"/);
+  assert.ok(html.indexOf('id="how-it-works"') > html.indexOf('</nav>'));
+  assert.ok(html.indexOf('how-it-works.js') > html.indexOf('app.js'));
+});

@@ -532,3 +532,21 @@ pre.cs-tx,pre.cs-md{max-height:360px;overflow:auto;margin:0 18px 14px;background
 .pv-c label{font-size:14px;color:inherit}
 .pv-ref{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
 .pv-chip[aria-pressed="true"]{background:var(--tint);color:#fff}
+
+/* Footer: how this tool works */
+.nav-how{text-decoration:none;display:inline-flex;align-items:center}
+.site-foot{border-top:.5px solid var(--sep);background:var(--section);margin-top:8px}
+.site-foot .in{max-width:1280px;margin:0 auto;padding:24px clamp(16px,4vw,48px) 40px;display:grid;gap:16px}
+.how{scroll-margin-top:72px;border-radius:var(--r-card);background:var(--card);box-shadow:var(--shadow)}
+.how:focus{outline:none}
+.how-h{margin:0;font-size:17px;font-weight:600}
+.how-btn{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;padding:12px 20px;cursor:pointer;border-radius:var(--r-card);font:inherit;font-weight:600;color:var(--label)}
+.how-btn:focus-visible{outline:3px solid color-mix(in srgb,var(--tint) 55%,transparent);outline-offset:2px}
+.how-chev{width:9px;height:9px;border-right:2px solid var(--tint);border-bottom:2px solid var(--tint);transform:rotate(45deg) translateY(-2px);transition:transform .15s}
+.how-btn[aria-expanded="true"] .how-chev{transform:rotate(-135deg)}
+.how-panel{padding:0 20px 20px;display:grid;gap:12px;max-width:72ch}
+.how-for{margin:0;font-size:15px;color:var(--secondary)}
+.how-steps{margin:0;padding-left:22px;display:grid;gap:10px;font-size:16px;line-height:1.45}
+.how-note{margin:0;font-size:14px;color:var(--secondary)}
+.site-foot .rnote{text-align:center;margin:0}
+@media (max-width:640px){.nav-how{font-size:13px;padding:6px 10px;min-height:32px}}

@@ -25,7 +25,7 @@
       <button role="tab" hidden id="tab-rec" aria-selected="false" aria-controls="view-rec">Records</button>
       <button role="tab" hidden id="tab-comm" aria-selected="false" aria-controls="view-comm">Community<span class="count" id="comm-count">3</span></button>
     </div>
-    <div class="cs-navr"><div class="seg cs-role" role="group" aria-label="View as" id="cs-role"><button type="button" data-role="designer" aria-pressed="true">Designer</button><button type="button" data-role="engineer" aria-pressed="false">Engineer</button></div></div>
+    <div class="cs-navr"><a class="tool nav-how" id="how-jump" href="#how-it-works" aria-controls="how-panel">How this tool works</a><div class="seg cs-role" role="group" aria-label="View as" id="cs-role"><button type="button" data-role="designer" aria-pressed="true">Designer</button><button type="button" data-role="engineer" aria-pressed="false">Engineer</button></div></div>
   </div>
 </nav>
 
@@ -348,7 +348,31 @@
     <div id="ex-grid" class="grid"></div>
   </section>
 </div>
-<p class="rnote" id="snapstamp" hidden style="text-align:center;margin:24px 16px"></p>
+<footer class="site-foot" id="site-foot">
+  <div class="in">
+    <section class="how" id="how-it-works" aria-labelledby="how-h" tabindex="-1">
+      <h2 id="how-h" class="how-h">
+        <button type="button" class="how-btn" id="how-btn" aria-expanded="false" aria-controls="how-panel">
+          <span>How this tool works</span><span class="how-chev" aria-hidden="true"></span>
+        </button>
+      </h2>
+      <div class="how-panel" id="how-panel" role="region" aria-labelledby="how-h" hidden>
+        <p class="how-for">For Designers and Product people. You don&rsquo;t need to write code.</p>
+        <ol class="how-steps">
+          <li><strong>Start a page from a VA template.</strong> Under <em>Pages</em>, then <em>Compose</em>, choose <em>New page</em> and pick a VA page template.</li>
+          <li><strong>Build the page.</strong> Drop components onto the page. As you go, adjust the spacing and the semantics, such as heading order.</li>
+          <li><strong>Need a custom component or a different variation?</strong> Open the <em>Components</em> tab and describe what you need in plain words. Claude builds it from VA Design System parts, and you can refine it with a sentence.</li>
+          <li><strong>Need a form?</strong> Open the <em>Forms</em> tab and describe the form the same way. You can edit each page and field afterward.</li>
+          <li><strong>Save it, then use it.</strong> Save any new component or form to your library. It then shows up in the library on <em>Compose</em>, ready to drop onto your page.</li>
+          <li><strong>Get engineer sign-off.</strong> When you&rsquo;re happy with the prototype, send it to your engineer under <em>Review and export</em>. They approve it or send back changes.</li>
+          <li><strong>Build your VA Prototype Kit.</strong> Once the engineer signs off, download the bundle from <em>Review and export</em>.</li>
+        </ol>
+        <p class="how-note">Your work is saved only in this browser on this device. Nobody else can see it, so download or copy anything you need to share.</p>
+      </div>
+    </section>
+    <p class="rnote" id="snapstamp" hidden></p>
+  </div>
+</footer>
 <div class="toast" id="toast" hidden></div>
 <div id="cs-scrim" hidden></div>
 <div class="cs-modal" id="cs-lib-modal" role="dialog" aria-modal="true" aria-labelledby="cs-lib-h" hidden>
@@ -359,5 +383,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="claude-shim.js"></script>
 <script src="app.js"></script>
+<script src="how-it-works.js"></script>
 </body>
 </html>
