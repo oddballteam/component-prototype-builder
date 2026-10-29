@@ -1,4 +1,4 @@
-# Component Builder
+# Component Prototype Builder
 
 A prototyping workbench for VA.gov (VADS) components, pages and forms. It started as a Claude artifact and now runs as a static app plus one Vercel function. There are no accounts: everything you save stays in your own browser.
 

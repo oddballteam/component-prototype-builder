@@ -623,7 +623,7 @@ const HEAD={build:["Components","Describe a VA.gov component and the agent build
   proto:["Prototype","Turn what you built into a bundle for the VA Prototype Kit, and a review page for engineering."],
   ref:["Reference","Popular VADS components, where each one is used across VA.gov products, how it looks in other states, and what to know about accessibility."],
   rec:["Records","A record for every component choice, with its reason and status. Anything the design system does not cover becomes an unmet need."],
-  comm:["Component Builder","Describe a VA.gov component. The agent builds it from VA Design System components only and checks the result against VADS."]};
+  comm:["Component Prototype Builder","Describe a VA.gov component. The agent builds it from VA Design System components only and checks the result against VADS."]};
 function setTab(which){
   ["build","forms","proto","ref","rec","comm"].forEach(t=>{$("#tab-"+t).setAttribute("aria-selected",String(t===which));$("#view-"+t).hidden=t!==which});
   $("#h-title").textContent=HEAD[which][0];$("#h-sub").textContent=HEAD[which][1];
@@ -2453,7 +2453,7 @@ function ptRenderReview(main){
   /* Snapshot */
   const snap=ptCard("Snapshot","Design-time render");
   snap.append(fel("div",{id:"pt-snap-box"}));
-  snap.append(fel("p",{class:"rnote",style:"padding:0 18px 16px",text:"This is the Component Builder’s render of the design, not the kit build. Once the kit build exists, the preview URL above is the source of truth."}));
+  snap.append(fel("p",{class:"rnote",style:"padding:0 18px 16px",text:"This is the Component Prototype Builder’s render of the design, not the kit build. Once the kit build exists, the preview URL above is the source of truth."}));
   secs.push(["snap","Snapshot",snap]);
 
   /* Specs */
@@ -2817,13 +2817,13 @@ function ptPrd(){
   L.push("## Reference","");
   L.push("- Figma: "+(PT.figma.trim()||"[TBD]"));
   L.push("- Prototype preview: "+(PT.url.trim()||"[add after the kit build]"));
-  L.push("- Component Builder files: `component-builder/brief.json`"+(ptUsesForm()?", `component-builder/form.json`":"")+", `component-builder/engineer-review.md`");
+  L.push("- Component Prototype Builder files: `component-builder/brief.json`"+(ptUsesForm()?", `component-builder/form.json`":"")+", `component-builder/engineer-review.md`");
   return L.join("\n")+"\n";
 }
 function ptBrief(){
   const rows=ptDepRows();
   return{
-    generatedBy:"VADS Component Builder",
+    generatedBy:"VADS Component Prototype Builder",
     prototype:{name:ptName(),title:ptTitle(),type:PT_TYPE_LABEL[PT.type],typeKey:PT.type,viewport:PT.viewport,team:PT.team||null,creator:PT.creator||null,
       problem:PT.problem||null,research:PT.research.split("\n").map(s=>s.trim()).filter(Boolean),figma:PT.figma||null,previewUrl:PT.url||null},
     shells:{form:ptUsesForm()?PT_SHELL.form:undefined,page:ptUsesPages()?PT_SHELL.page:undefined},
@@ -2878,7 +2878,7 @@ function ptReviewMd(){
 function ptPrompt(){
   const n=ptName();
   const L=[];
-  L.push("Create a prototype from a VADS Component Builder bundle.","");
+  L.push("Create a prototype from a VADS Component Prototype Builder bundle.","");
   L.push("The bundle is already in `src/prototypes/"+n+"/`:","- `prd.md` and `prototype.yml`, filled in","- `component-builder/brief.json`, the pages, components, fields and data sources"+(ptUsesForm()?"\n- `component-builder/form.json`, the form model from the Form Builder":""),"- `component-builder/engineer-review.md`, the review page for engineering","");
   L.push("Follow `docs/skills/prototype-workflow.md`. Do not ask again for the name, type, viewport, team or description. They are in `prototype.yml` and `prd.md`."+(PT.creator.trim()?"":" `creator` is a placeholder, so detect it with `gh api user --jq .login` as Step 3 describes."),"");
   L.push(PT.research.trim()&&PT.problem.trim()?"The PRD’s problem and research sections are written. At Step 4.6 choose Full depth. Do not rewrite `prd.md`.":"The PRD’s "+(PT.problem.trim()?"prior research":(PT.research.trim()?"problem statement":"problem and prior research"))+" "+(PT.problem.trim()||PT.research.trim()?"section is":"sections are")+" still [TBD]. Run Step 4.5 discovery before you build, and keep the rest of `prd.md`.","");
@@ -2915,7 +2915,7 @@ function ptSpecs(){
 }
 function ptFiles(){
   const n=ptName(),F={};
-  F["README.md"]=["# Prototype bundle: "+ptTitle(),"","Made with the VADS Component Builder.","","1. Copy the `"+n+"/` folder into `va-prototype-kit/src/prototypes/`.","2. Open the kit in Claude Code and paste the contents of `"+n+"/component-builder/claude-code-prompt.md`.","3. Review `"+n+"/component-builder/engineer-review.md` with engineering.","","`prototype.yml` and `prd.md` follow the kit’s format. The `component-builder/` files are inputs to the build and are safe to delete after it.",""].join("\n");
+  F["README.md"]=["# Prototype bundle: "+ptTitle(),"","Made with the VADS Component Prototype Builder.","","1. Copy the `"+n+"/` folder into `va-prototype-kit/src/prototypes/`.","2. Open the kit in Claude Code and paste the contents of `"+n+"/component-builder/claude-code-prompt.md`.","3. Review `"+n+"/component-builder/engineer-review.md` with engineering.","","`prototype.yml` and `prd.md` follow the kit’s format. The `component-builder/` files are inputs to the build and are safe to delete after it.",""].join("\n");
   F[n+"/prd.md"]=ptPrd();
   F[n+"/prototype.yml"]=ptYml();
   F[n+"/component-builder/brief.json"]=JSON.stringify(ptBrief(),null,2)+"\n";
@@ -3077,7 +3077,7 @@ async function figPush(auto){
   }
   const b=$("#pt-figpush");if(b)b.disabled=true;
   try{
-    const ses=await mcp.callTool("Figma","create_session",{fileKey:key,description:"Push the approved Component Builder prototype to this file"});
+    const ses=await mcp.callTool("Figma","create_session",{fileKey:key,description:"Push the approved Component Prototype Builder prototype to this file"});
     const sid=ses&&ses.payload&&ses.payload.sessionId;
     await mcp.callTool("Figma","use_figma",{fileKey:key,sessionId:sid,description:"Build the prototype pages as editable layers",code:figCode(pages)});
     toast("Sent to Figma. Check the file.");
@@ -4222,7 +4222,7 @@ window.csBoot=async function(){
   watch();
   if(CS.sid&&CS.studies.some(s=>s.id===CS.sid))await openStudy(CS.sid,{boot:true});
   else if(CS.studies.length)await openStudy(CS.studies[CS.studies.length-1].id,{boot:true});
-  else{CS.sid=null;LS("cs-active",null);window.__implicit=true;try{await createStudy("Component Builder workspace","")}catch(e){console.error(e)}window.__implicit=false}
+  else{CS.sid=null;LS("cs-active",null);window.__implicit=true;try{await createStudy("Component Prototype Builder workspace","")}catch(e){console.error(e)}window.__implicit=false}
   CS.ready=true;
   setInterval(sync,3000);
   addEventListener("pagehide",()=>{sync()});
@@ -4578,7 +4578,7 @@ ptMountSnap=async function(){
   const f=frameShell(p,{edit:false});host.append(f.el);mountAll(f.hosts,++PG.tok);
 };
 function kitPage(p){
-  const L=["<!-- "+(p.title||"Page")+". From the Component Builder page composer. Place inside the main content area of src/templates/default/base.html. -->",
+  const L=["<!-- "+(p.title||"Page")+". From the Component Prototype Builder page composer. Place inside the main content area of src/templates/default/base.html. -->",
     '<div class="vads-grid-container">','  <div class="vads-grid-row">','    <div class="vads-grid-col-12 medium-screen:vads-grid-col-8">'];
   p.blocks.forEach((b,i)=>{L.push('      <div class="vads-u-margin-top--'+(i?b.space:0)+'">');clean(b.html).split("\n").forEach(l=>L.push("        "+l));L.push("      </div>")});
   L.push("    </div>","  </div>","</div>");return L.join("\n")+"\n";

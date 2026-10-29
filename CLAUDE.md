@@ -1,4 +1,4 @@
-# Component Builder: working notes
+# Component Prototype Builder: working notes
 
 - `public/` is the app and is edited directly. `source/component-builder.artifact.html` is the original single-file export, kept for reference; `npm run split` re-creates `public/` from it and overwrites edits.
 - The app reaches Claude, storage, identity and downloads only through `window.claude.use(name)`. `public/claude-shim.js` provides that. Keep it the single seam; do not call `/api/*` from `app.js` directly.

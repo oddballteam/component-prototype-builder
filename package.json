@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "VADS Component Builder: static app plus two Vercel functions.",
+  "description": "VADS Component Prototype Builder: static app plus two Vercel functions.",
   "engines": { "node": ">=20" },
   "scripts": {
     "dev": "node scripts/dev-server.mjs",
