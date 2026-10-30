@@ -49,7 +49,7 @@ code{font-family:var(--mono);font-size:.88em}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .seg button[aria-selected="true"]{background:#636366}}
 .seg .count{font-weight:400;color:var(--secondary);margin-left:5px;font-variant-numeric:tabular-nums}
 
-.wrap{max-width:1280px;margin:0 auto;padding-inline:clamp(16px,4vw,48px);padding-block:16px 96px;display:grid;gap:40px}
+.wrap{max-width:1600px;margin:0 auto;padding-inline:clamp(16px,4vw,48px);padding-block:16px 96px;display:grid;gap:40px}
 .large{padding:32px 4px 0}
 .large h1{font-size:34px;line-height:1.12;font-weight:700;letter-spacing:-.022em;margin:0;text-wrap:balance}
 .large p{margin:12px 0 0;color:var(--secondary);font-size:15px;max-width:64ch;line-height:1.4}

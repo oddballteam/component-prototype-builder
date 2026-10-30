@@ -143,6 +143,8 @@ body:not(.js) .slide:first-of-type [data-stage] { opacity: 1; transform: none; }
 .check::after { content: ""; position: absolute; left: .8rem; top: .35rem; width: .7rem; height: 1.2rem; border: solid currentColor; border-width: 0 .25rem .25rem 0; transform: rotate(45deg); }
 .illus { width: 100%; max-width: 72rem; margin: 0; }
 .illus svg { display: block; width: auto; max-width: 100%; max-height: calc(var(--deck-h) * .42); margin: 0 auto; }
+.slide--challenge .card { border-left: .8rem solid var(--primary); text-align: left; }
+.slide--challenge .card .prose-sm { text-align: left; }
 .step { display: flex; flex-direction: column; gap: 1rem; text-align: left; }
 .step-label { font-size: 1.2rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
 .step-title { font-size: 2.8rem; font-weight: 700; line-height: 1.2; color: var(--primary-deep); }
@@ -434,23 +436,25 @@ a:hover { color: var(--primary); }
 <!-- Slide 1. Hero -->
 <section class="slide" data-stages="2">
   <div class="center">
-    <h1 class="hero-title">Prototype faster. Reduce Figma rework. <span class="tint">Build trust.</span></h1>
+    <h1 class="hero-title">Prototype faster. Reduce Figma rework. <span class="tint">Build the right thing.</span></h1>
     <div data-stage="1" class="group">
-      <p class="prose-sm"><span class="keyword">Component Prototype Builder</span> helps designers build VA-ready prototypes built with real VADS components and standards. Move quickly into user testing with smart engineering review. Once user testing succeeds, push your prototype to Figma for finalizing.</p>
+      <p class="prose-sm">Build <span class="keyword">VA-ready prototypes</span> from real VADS components. Get engineering's go, test with users, then push to Figma to finalize.</p>
       <button class="btn btn--secondary" onclick="deck.advance()">See how</button>
     </div>
   </div>
 </section>
 
-<!-- Slide 2. The challenge: card stack -->
-<section class="slide" data-stages="4">
+<!-- Slide 2. The challenge: card grid -->
+<section class="slide slide--challenge" data-stages="4">
   <div class="slide-header">The Challenge</div>
   <div class="center center--top">
-    <p class="prose">Every prototype gets built, reviewed and <span class="keyword">rebuilt</span>, and every round costs the team time.</p>
-    <div class="card-list">
-      <div class="card" data-stage="1"><p class="prose-sm">Designers and engineers work from <span class="keyword">different artifacts</span>, so gaps surface late.</p></div>
-      <div class="card" data-stage="2"><p class="prose-sm">Feasibility is answered <span class="keyword">after</span> the design is built, so user testing slips a cycle.</p></div>
-      <div class="card" data-stage="3"><p class="prose-sm">Approved work is <span class="keyword">rebuilt by hand</span> in Figma.</p></div>
+    <p class="prose">Teams need to test quick ideas to <span class="keyword">build the right thing</span>.</p>
+    <div class="grid-2">
+      <div class="card" data-stage="1"><p class="prose-sm">Designers loop through <span class="keyword">changes and approvals</span> in Figma and the VA Prototype Kit just to view a prototype URL.</p></div>
+      <div class="card" data-stage="1"><p class="prose-sm"><span class="keyword">Imposter components</span> slip in, and teams are told to fix them at staging review. That is too late.</p></div>
+      <div class="card" data-stage="2"><p class="prose-sm">Engineers feel <span class="keyword">out of the loop</span> on design prototypes.</p></div>
+      <div class="card" data-stage="2"><p class="prose-sm">Product managers cannot <span class="keyword">iterate an idea</span> with a designer before spending sprint points.</p></div>
+      <div class="card span-2" data-stage="3"><p class="prose-sm">Contributing to VADS has <span class="keyword">no sensible path</span>.</p></div>
     </div>
   </div>
 </section>
@@ -598,7 +602,7 @@ a:hover { color: var(--primary); }
 <!-- Slide 11. Loop back to the hero -->
 <section class="slide" data-stages="2">
   <div class="center">
-    <h1 class="hero-title">Prototype faster. Reduce Figma rework. <span class="tint">Build trust.</span></h1>
+    <h1 class="hero-title">Prototype faster. Reduce Figma rework. <span class="tint">Build the right thing.</span></h1>
     <div data-stage="1" class="group">
       <button class="btn" onclick="deck.startOver()">Start over</button>
     </div>
