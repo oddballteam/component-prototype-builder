@@ -35,7 +35,7 @@ code{font-family:var(--mono);font-size:.88em}
 
 /* Nav bar */
 .navbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
-.navbar .in{max-width:1280px;margin:0 auto;padding:10px clamp(16px,4vw,48px);display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
+.navbar .in{max-width:1600px;margin:0 auto;padding:10px clamp(16px,4vw,48px);display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
 .nav-title{font-size:17px;font-weight:600;white-space:nowrap}
 .source{font-size:13px;color:var(--secondary);display:flex;align-items:center;gap:6px}
 .source i{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
